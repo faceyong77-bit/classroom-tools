@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공감빙고 학습지</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8fafc;
+      color: #1f2937;
+    }
+    .wrap { max-width: 1050px; margin: 0 auto; padding: 18px; }
+    header {
+      background: linear-gradient(135deg, #fce7f3, #e0f2fe);
+      border: 2px solid #e5e7eb;
+      border-radius: 24px;
+      padding: 22px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(30px, 5vw, 48px); }
+    .subtitle { margin: 0; font-size: 18px; color: #475569; }
+    .panel {
+      background: #fff;
+      border: 2px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+    .teacher-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    label { font-weight: 900; display: block; margin-bottom: 6px; }
+    input, textarea, select {
+      width: 100%;
+      font-size: 18px;
+      padding: 12px;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      background: white;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 3px 8px rgba(37,99,235,.25);
+    }
+    button.good { background: #16a34a; }
+    button.gray { background: #64748b; }
+    button.red { background: #ef4444; }
+    button.orange { background: #f97316; }
+    button:disabled { background: #cbd5e1; color: #64748b; cursor: not-allowed; box-shadow: none; }
+    .help { line-height: 1.6; color: #475569; }
+    .counter { font-weight: 900; color: #2563eb; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      color: #111827;
+      background: #fff7ed;
+      border: 2px solid #fed7aa;
+      box-shadow: none;
+      font-size: 15px;
+      padding: 8px 10px;
+    }
+    .chip.selected { background: #111827; color: white; border-color: #111827; }
+    .board-wrap { display: flex; justify-content: center; }
+    .board {
+      width: min(94vw, 760px);
+      display: grid;
+      gap: 8px;
+      padding: 8px;
+      background: #dbeafe;
+      border-radius: 18px;
+      border: 3px solid #60a5fa;
+    }
+    .cell {
+      aspect-ratio: 1 / 1;
+      background: white;
+      border: 3px solid #93c5fd;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px;
+      font-size: clamp(14px, 2.3vw, 22px);
+      font-weight: 900;
+      word-break: keep-all;
+      line-height: 1.25;
+      user-select: none;
+    }
+    .cell.empty { color: #94a3b8; font-weight: 700; }
+    .cell.play { cursor: pointer; }
+    .cell.marked { background: #fde68a; border-color: #f59e0b; color: #7c2d12; }
+    .status {
+      text-align: center;
+      min-height: 54px;
+      font-size: clamp(24px, 5vw, 46px);
+      color: #dc2626;
+      font-weight: 1000;
+      margin: 8px 0;
+    }
+    .reflection-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .hidden { display: none !important; }
+    .print-title { display: none; }
+    .small { font-size: 14px; color: #64748b; }
+    @media (max-width: 760px) {
+      .teacher-box, .reflection-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      header, .controls, .choice-panel { display: none !important; }
+      .wrap { max-width: none; padding: 0; }
+      .panel { box-shadow: none; border: 1.5px solid #111827; break-inside: avoid; }
+      .print-title { display: block; text-align: center; font-size: 28px; font-weight: 900; margin-bottom: 10px; }
+      .board { width: 95vw; border-color: #111827; background: white; }
+      .cell { border-color: #111827; }
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>💗 공감빙고 학습지</h1>
+      <p class="subtitle">친구의 생각과 감정을 듣고, 공감 표현을 연습하는 빙고 활동</p>
+    </header>
+
+    <section class="panel controls" id="setupPanel">
+      <div class="teacher-box">
+        <div>
+          <label for="unitInput">단원</label>
+          <input id="unitInput" placeholder="예: 2. 우리 지역의 국가유산" />
+        </div>
+        <div>
+          <label for="topicInput">학습 주제</label>
+          <input id="topicInput" placeholder="예: 친구의 의견을 듣고 공감하며 말하기" />
+        </div>
+      </div>
+      <hr style="border:0; border-top:2px dashed #e5e7eb; margin:16px 0;">
+      <div class="row">
+        <label for="sizeSelect">빙고판</label>
+        <select id="sizeSelect">
+          <option value="3" selected>3 × 3</option>
+          <option value="4">4 × 4</option>
+          <option value="5">5 × 5</option>
+        </select>
+        <label for="targetInput">빙고 완성 줄 수</label>
+        <input id="targetInput" type="number" min="1" max="12" value="2" style="max-width:120px" />
+        <button id="applyBtn">설정 적용</button>
+        <button class="good" id="startBtn" disabled>빙고 게임 시작</button>
+        <button class="gray" id="printBtn">인쇄 / PDF 저장</button>
+        <button class="red" id="resetBtn">처음부터 다시</button>
+      </div>
+      <p class="help">
+        필요한 공감 단어 수: <span class="counter" id="needCount">9</span>개 / 빙고판에 들어간 단어 수: <span class="counter" id="selectedCount">0</span>개<br>
+        공감 단어를 직접 입력한 뒤 <strong>입력 완료</strong>를 누르세요. 단어 버튼을 클릭하면 빙고판에 들어갑니다.
+      </p>
+    </section>
+
+    <section class="panel controls" id="inputPanel">
+      <h2>공감빙고 단어 직접 입력</h2>
+      <p class="help">쉼표 또는 줄바꿈으로 구분해서 입력하세요. 예: 그랬구나, 속상했겠다, 끝까지 들어줄게</p>
+      <textarea id="wordInput" placeholder="그랬구나
+속상했겠다
+기뻤겠다
+끝까지 들어줄게
+네 마음을 알 것 같아"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button class="orange" id="makeBtn">입력 완료</button>
+        <button class="gray" id="sampleBtn">예시 단어 넣기</button>
+      </div>
+    </section>
+
+    <section class="panel choice-panel" id="choicePanel">
+      <h2>공감 단어 버튼</h2>
+      <p class="help">버튼을 누르면 빙고칸에 차례대로 들어갑니다. 다시 누르면 선택이 취소됩니다.</p>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <section class="panel controls hidden" id="gamePanel">
+      <div class="row">
+        <button class="gray" id="backBtn">선택 화면으로 돌아가기</button>
+        <button class="red" id="clearMarksBtn">색칠 지우기</button>
+      </div>
+      <p class="help" style="text-align:center;">빙고칸을 터치하면 색깔이 채워집니다. 목표 줄 수를 완성하면 “빙고!”가 나타납니다.</p>
+    </section>
+
+    <section class="panel print-area">
+      <div class="print-title">공감빙고 학습지</div>
+      <p><strong>단원:</strong> <span id="unitView">________________________</span></p>
+      <p><strong>학습 주제:</strong> <span id="topicView">________________________</span></p>
+      <div class="status" id="statusText"></div>
+      <div class="board-wrap">
+        <div class="board" id="board"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>활동 후 돌아보기</h2>
+      <div class="reflection-grid">
+        <div>
+          <label for="feelInput">오늘 친구의 말을 들으며 느낀 점</label>
+          <textarea id="feelInput" placeholder="예: 친구마다 생각이 다르다는 것을 알았습니다."></textarea>
+        </div>
+        <div>
+          <label for="promiseInput">앞으로 내가 실천할 공감 행동</label>
+          <textarea id="promiseInput" placeholder="예: 친구가 말할 때 끝까지 듣겠습니다."></textarea>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const sampleWords = [
+      '그랬구나', '속상했겠다', '기뻤겠다', '힘들었겠다', '걱정됐겠다',
+      '네 마음을 알 것 같아', '끝까지 들어줄게', '조금 더 말해줄래?', '네 의견도 소중해',
+      '함께 방법을 찾아보자', '내가 도와줄게', '기다려 줄게', '천천히 해도 돼',
+      '말해줘서 고마워', '네 생각을 존중해', '함께 해결해 보자', '혼자가 아니야',
+      '내가 이해한 게 맞을까?', '다른 생각도 들어보자', '네 마음이 중요해'
+    ];
+
+    const board = document.getElementById('board');
+    const chips = document.getElementById('chips');
+    const sizeSelect = document.getElementById('sizeSelect');
+    const targetInput = document.getElementById('targetInput');
+    const needCount = document.getElementById('needCount');
+    const selectedCount = document.getElementById('selectedCount');
+    const startBtn = document.getElementById('startBtn');
+    const statusText = document.getElementById('statusText');
+    const unitInput = document.getElementById('unitInput');
+    const topicInput = document.getElementById('topicInput');
+    const unitView = document.getElementById('unitView');
+    const topicView = document.getElementById('topicView');
+    const choicePanel = document.getElementById('choicePanel');
+    const inputPanel = document.getElementById('inputPanel');
+    const setupPanel = document.getElementById('setupPanel');
+    const gamePanel = document.getElementById('gamePanel');
+    const wordInput = document.getElementById('wordInput');
+
+    let wordBank = [];
+    let size = 3;
+    let targetLines = 2;
+    let selected = [];
+    let marks = [];
+    let playing = false;
+
+    function maxLines(n) { return n * 2 + 2; }
+
+    function parseWords(text) {
+      return [...new Set(text.split(/[\n,，]/).map(w => w.trim()).filter(Boolean))];
+    }
+
+    function syncHeader() {
+      unitView.textContent = unitInput.value.trim() || '________________________';
+      topicView.textContent = topicInput.value.trim() || '________________________';
+    }
+
+    function updateInfo() {
+      const need = size * size;
+      needCount.textContent = need;
+      selectedCount.textContent = selected.length;
+      startBtn.disabled = selected.length !== need;
+      targetInput.max = maxLines(size);
+      if (Number(targetInput.value) > maxLines(size)) targetInput.value = maxLines(size);
+    }
+
+    function renderBoard() {
+      board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+      board.innerHTML = '';
+      for (let i = 0; i < size * size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (!selected[i] ? ' empty' : '') + (playing ? ' play' : '') + (marks[i] ? ' marked' : '');
+        cell.textContent = selected[i] || '공감 단어 선택';
+        cell.addEventListener('click', () => {
+          if (!playing || !selected[i]) return;
+          marks[i] = !marks[i];
+          checkBingo();
+          renderBoard();
+        });
+        board.appendChild(cell);
+      }
+      updateInfo();
+    }
+
+    function renderChips() {
+      chips.innerHTML = '';
+      if (wordBank.length === 0) {
+        chips.innerHTML = '<p class="help">아직 입력된 공감 단어가 없습니다. 위 입력칸에 단어를 넣고 입력 완료를 누르세요.</p>';
+        return;
+      }
+      wordBank.forEach(word => {
+        const btn = document.createElement('button');
+        btn.className = 'chip' + (selected.includes(word) ? ' selected' : '');
+        btn.textContent = word;
+        btn.addEventListener('click', () => toggleWord(word));
+        chips.appendChild(btn);
+      });
+    }
+
+    function toggleWord(word) {
+      if (playing) return;
+      const need = size * size;
+      if (selected.includes(word)) {
+        selected = selected.filter(x => x !== word);
+      } else {
+        if (selected.length >= need) {
+          alert(`빙고칸이 모두 찼습니다. ${need}개까지만 선택할 수 있어요.`);
+          return;
+        }
+        selected.push(word);
+      }
+      marks = Array(size * size).fill(false);
+      renderChips();
+      renderBoard();
+    }
+
+    function applySettings() {
+      if (playing) return;
+      size = Number(sizeSelect.value);
+      targetLines = Number(targetInput.value);
+      if (targetLines < 1) targetLines = 1;
+      if (targetLines > maxLines(size)) targetLines = maxLines(size);
+      targetInput.value = targetLines;
+      selected = selected.slice(0, size * size);
+      marks = Array(size * size).fill(false);
+      statusText.textContent = '';
+      syncHeader();
+      renderChips();
+      renderBoard();
+    }
+
+    function makeWordButtons() {
+      if (playing) return;
+      wordBank = parseWords(wordInput.value);
+      selected = selected.filter(word => wordBank.includes(word)).slice(0, size * size);
+      marks = Array(size * size).fill(false);
+      renderChips();
+      renderBoard();
+      if (wordBank.length === 0) alert('공감 단어를 1개 이상 입력해 주세요.');
+    }
+
+    function startGame() {
+      applySettings();
+      if (selected.length !== size * size) {
+        alert('빙고칸을 모두 채운 뒤 시작할 수 있어요.');
+        return;
+      }
+      playing = true;
+      inputPanel.classList.add('hidden');
+      choicePanel.classList.add('hidden');
+      setupPanel.classList.add('hidden');
+      gamePanel.classList.remove('hidden');
+      marks = Array(size * size).fill(false);
+      statusText.textContent = `목표: ${targetLines}줄 완성`;
+      renderBoard();
+    }
+
+    function backToSelect() {
+      playing = false;
+      inputPanel.classList.remove('hidden');
+      choicePanel.classList.remove('hidden');
+      setupPanel.classList.remove('hidden');
+      gamePanel.classList.add('hidden');
+      statusText.textContent = '';
+      marks = Array(size * size).fill(false);
+      renderChips();
+      renderBoard();
+    }
+
+    function resetAll() {
+      if (!confirm('모든 입력, 선택, 색칠을 지울까요?')) return;
+      wordInput.value = '';
+      wordBank = [];
+      selected = [];
+      marks = Array(size * size).fill(false);
+      playing = false;
+      inputPanel.classList.remove('hidden');
+      choicePanel.classList.remove('hidden');
+      setupPanel.classList.remove('hidden');
+      gamePanel.classList.add('hidden');
+      statusText.textContent = '';
+      renderChips();
+      renderBoard();
+    }
+
+    function clearMarks() {
+      marks = Array(size * size).fill(false);
+      statusText.textContent = `목표: ${targetLines}줄 완성`;
+      renderBoard();
+    }
+
+    function checkBingo() {
+      let lines = 0;
+      for (let r = 0; r < size; r++) {
+        let ok = true;
+        for (let c = 0; c < size; c++) if (!marks[r * size + c]) ok = false;
+        if (ok) lines++;
+      }
+      for (let c = 0; c < size; c++) {
+        let ok = true;
+        for (let r = 0; r < size; r++) if (!marks[r * size + c]) ok = false;
+        if (ok) lines++;
+      }
+      let d1 = true, d2 = true;
+      for (let i = 0; i < size; i++) {
+        if (!marks[i * size + i]) d1 = false;
+        if (!marks[i * size + (size - 1 - i)]) d2 = false;
+      }
+      if (d1) lines++;
+      if (d2) lines++;
+      statusText.textContent = lines >= targetLines ? `🎉 빙고! ${lines}줄 완성! 🎉` : `현재 ${lines}줄 / 목표 ${targetLines}줄`;
+    }
+
+    document.getElementById('applyBtn').addEventListener('click', applySettings);
+    document.getElementById('makeBtn').addEventListener('click', makeWordButtons);
+    document.getElementById('sampleBtn').addEventListener('click', () => {
+      wordInput.value = sampleWords.join('\n');
+      makeWordButtons();
+    });
+    document.getElementById('startBtn').addEventListener('click', startGame);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+    document.getElementById('backBtn').addEventListener('click', backToSelect);
+    document.getElementById('clearMarksBtn').addEventListener('click', clearMarks);
+    sizeSelect.addEventListener('change', applySettings);
+    targetInput.addEventListener('change', applySettings);
+    unitInput.addEventListener('input', syncHeader);
+    topicInput.addEventListener('input', syncHeader);
+
+    applySettings();
+  </script>
+</body>
+</html>
