@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>퀴즈 풀이 프로그램</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+    header {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white;
+      padding: 28px 20px;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 8px; font-size: 30px; }
+    header p { margin: 0; opacity: 0.95; }
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px 40px;
+    }
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      border: 1px solid #e5e7eb;
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      color: #111827;
+    }
+    .section-title {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 800;
+      margin: 18px 0 10px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 10px 0 6px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 16px;
+      background: #fff;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .question-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 12px 0;
+      background: #fbfdff;
+    }
+    .student-question-card {
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      padding: 28px;
+      background: #ffffff;
+    }
+    .progress-wrap {
+      margin: 8px 0 22px;
+    }
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 14px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+    .question-number {
+      font-size: 18px;
+      color: #2563eb;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: 28px;
+      line-height: 1.45;
+      font-weight: 900;
+      margin: 8px 0 20px;
+      color: #111827;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .student-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.2s ease;
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #e0e7ff; color: #3730a3; }
+    .danger { background: #fee2e2; color: #991b1b; }
+    .success { background: #dcfce7; color: #166534; }
+    .hidden { display: none; }
+    .quiz-title {
+      font-size: 28px;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .answer-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background: #f8fafc;
+      color: #111827;
+      border: 2px solid #e5e7eb;
+    }
+    .option-btn.selected {
+      background: #dbeafe;
+      border-color: #2563eb;
+      color: #1e40af;
+    }
+    .ox-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .ox-btn {
+      font-size: 34px;
+      padding: 24px;
+      background: #f8fafc;
+      border: 2px solid #e5e7eb;
+      color: #111827;
+    }
+    .ox-btn.selected {
+      background: #dbeafe;
+      border-color: #2563eb;
+      color: #1e40af;
+    }
+    .result {
+      text-align: center;
+      padding: 24px;
+      border-radius: 18px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .result .score {
+      font-size: 42px;
+      font-weight: 900;
+      color: #166534;
+    }
+    .review-item {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+    }
+    .correct { color: #15803d; font-weight: 900; }
+    .wrong { color: #b91c1c; font-weight: 900; }
+    .small { font-size: 14px; color: #64748b; }
+    @media (max-width: 720px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      header h1 { font-size: 24px; }
+      .quiz-title { font-size: 23px; }
+      .question-text { font-size: 22px; }
+      .student-question-card { min-height: 330px; padding: 20px; }
+      .student-nav { flex-direction: column; }
+      .student-nav button { width: 100%; }
+    }
+    @media print {
+      .btn-row, .student-nav, #teacherPanel { display: none !important; }
+      body { background: white; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>퀴즈 풀이 HTML 프로그램</h1>
+    <p>교사는 문제를 만들고, 학생은 한 문제씩 차례대로 풉니다.</p>
+  </header>
+
+  <main>
+    <section id="teacherPanel" class="card">
+      <h2>교사용 문제 입력</h2>
+      <label for="topic">퀴즈 주제</label>
+      <input id="topic" value="우리 지역 국가유산" placeholder="예: 합리적 선택, 물 부족, 국가유산" />
+
+      <div class="section-title">OX 문제 2개</div>
+      <div id="oxInputs"></div>
+
+      <div class="section-title">4지선다 문제 2개</div>
+      <div id="mcInputs"></div>
+
+      <div class="section-title">단답형 문제 2개</div>
+      <div id="shortInputs"></div>
+
+      <div class="btn-row">
+        <button class="primary" onclick="startQuiz()">학생 모드 시작</button>
+        <button class="secondary" onclick="fillSample()">예시 문제 불러오기</button>
+        <button class="danger" onclick="resetAll()">전체 초기화</button>
+      </div>
+      <p class="small">※ 단답형은 띄어쓰기 차이를 줄이기 위해 학생 답과 정답의 공백을 제거하고 비교합니다.</p>
+    </section>
+
+    <section id="quizPanel" class="card hidden">
+      <div id="quizTopic" class="quiz-title"></div>
+      <div class="progress-wrap">
+        <div class="progress-text">
+          <span id="progressLabel">1 / 6</span>
+          <span id="answerStatus">미응답</span>
+        </div>
+        <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+      </div>
+      <div id="singleQuestion"></div>
+      <div class="student-nav">
+        <button id="prevBtn" class="secondary" onclick="prevQuestion()">이전 문제</button>
+        <button class="secondary" onclick="backToEdit()">문제 수정</button>
+        <button id="nextBtn" class="primary" onclick="nextQuestion()">다음 문제</button>
+        <button id="submitBtn" class="success hidden" onclick="checkAnswers()">제출하고 결과 보기</button>
+      </div>
+    </section>
+
+    <section id="resultPanel" class="card hidden">
+      <div id="resultBox"></div>
+      <div class="btn-row">
+        <button class="success" onclick="retryQuiz()">다시 풀기</button>
+        <button class="secondary" onclick="backToEdit()">교사용 입력 화면</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const oxInputs = document.getElementById('oxInputs');
+    const mcInputs = document.getElementById('mcInputs');
+    const shortInputs = document.getElementById('shortInputs');
+    let currentQuestionIndex = 0;
+    let studentAnswers = [];
+    let activeQuizData = null;
+
+    function makeInputs() {
+      oxInputs.innerHTML = '';
+      mcInputs.innerHTML = '';
+      shortInputs.innerHTML = '';
+
+      for (let i = 1; i <= 2; i++) {
+        oxInputs.innerHTML += `
+          <div class="question-box">
+            <label>OX 문제 ${i}</label>
+            <textarea id="oxQ${i}" placeholder="OX 문제를 입력하세요."></textarea>
+            <label>정답</label>
+            <select id="oxA${i}">
+              <option value="O">O</option>
+              <option value="X">X</option>
+            </select>
+          </div>`;
+      }
+
+      for (let i = 1; i <= 2; i++) {
+        mcInputs.innerHTML += `
+          <div class="question-box">
+            <label>4지선다 문제 ${i}</label>
+            <textarea id="mcQ${i}" placeholder="4지선다 문제를 입력하세요."></textarea>
+            <div class="grid-2">
+              <div><label>① 보기</label><input id="mc${i}o1" /></div>
+              <div><label>② 보기</label><input id="mc${i}o2" /></div>
+              <div><label>③ 보기</label><input id="mc${i}o3" /></div>
+              <div><label>④ 보기</label><input id="mc${i}o4" /></div>
+            </div>
+            <label>정답 번호</label>
+            <select id="mcA${i}">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>`;
+      }
+
+      for (let i = 1; i <= 2; i++) {
+        shortInputs.innerHTML += `
+          <div class="question-box">
+            <label>단답형 문제 ${i}</label>
+            <textarea id="shortQ${i}" placeholder="단답형 문제를 입력하세요."></textarea>
+            <label>정답</label>
+            <input id="shortA${i}" placeholder="정답을 입력하세요." />
+          </div>`;
+      }
+    }
+
+    function getQuizData() {
+      const topic = document.getElementById('topic').value.trim() || '퀴즈';
+      const questions = [];
+
+      for (let i = 1; i <= 2; i++) {
+        questions.push({
+          type: 'OX',
+          text: document.getElementById(`oxQ${i}`).value.trim(),
+          answer: document.getElementById(`oxA${i}`).value
+        });
+      }
+      for (let i = 1; i <= 2; i++) {
+        questions.push({
+          type: '4지선다',
+          text: document.getElementById(`mcQ${i}`).value.trim(),
+          options: [1,2,3,4].map(n => document.getElementById(`mc${i}o${n}`).value.trim()),
+          answer: document.getElementById(`mcA${i}`).value
+        });
+      }
+      for (let i = 1; i <= 2; i++) {
+        questions.push({
+          type: '단답형',
+          text: document.getElementById(`shortQ${i}`).value.trim(),
+          answer: document.getElementById(`shortA${i}`).value.trim()
+        });
+      }
+      return { topic, questions };
+    }
+
+    function validateQuiz(data) {
+      for (let i = 0; i < data.questions.length; i++) {
+        const q = data.questions[i];
+        if (!q.text) return `${i + 1}번 문제 내용이 비어 있습니다.`;
+        if (q.type === '4지선다' && q.options.some(opt => !opt)) return `${i + 1}번 4지선다 보기 중 비어 있는 칸이 있습니다.`;
+        if (q.type === '단답형' && !q.answer) return `${i + 1}번 단답형 정답이 비어 있습니다.`;
+      }
+      return '';
+    }
+
+    function startQuiz() {
+      const data = getQuizData();
+      const error = validateQuiz(data);
+      if (error) {
+        alert(error);
+        return;
+      }
+      activeQuizData = data;
+      currentQuestionIndex = 0;
+      studentAnswers = new Array(data.questions.length).fill('');
+      localStorage.setItem('quizData', JSON.stringify(data));
+      renderSingleQuestion();
+      document.getElementById('teacherPanel').classList.add('hidden');
+      document.getElementById('resultPanel').classList.add('hidden');
+      document.getElementById('quizPanel').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderSingleQuestion() {
+      const data = activeQuizData;
+      const q = data.questions[currentQuestionIndex];
+      const total = data.questions.length;
+      const savedAnswer = studentAnswers[currentQuestionIndex] || '';
+
+      document.getElementById('quizTopic').textContent = data.topic;
+      document.getElementById('progressLabel').textContent = `${currentQuestionIndex + 1} / ${total}`;
+      document.getElementById('progressFill').style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
+      document.getElementById('answerStatus').textContent = savedAnswer ? '응답 완료' : '미응답';
+
+      let html = `
+        <div class="student-question-card">
+          <div class="question-number">${currentQuestionIndex + 1}번 · ${q.type}</div>
+          <div class="question-text">${q.text}</div>`;
+
+      if (q.type === 'OX') {
+        html += `
+          <div class="ox-row">
+            <button class="ox-btn ${savedAnswer === 'O' ? 'selected' : ''}" onclick="selectAnswer('O', this)">O</button>
+            <button class="ox-btn ${savedAnswer === 'X' ? 'selected' : ''}" onclick="selectAnswer('X', this)">X</button>
+          </div>`;
+      } else if (q.type === '4지선다') {
+        html += `<div class="answer-options">`;
+        q.options.forEach((opt, n) => {
+          const value = String(n + 1);
+          html += `<button class="option-btn ${savedAnswer === value ? 'selected' : ''}" onclick="selectAnswer('${value}', this)">${value}. ${opt}</button>`;
+        });
+        html += `</div>`;
+      } else {
+        html += `<input id="shortAnswerInput" value="${escapeHtml(savedAnswer)}" placeholder="정답을 입력하세요." oninput="saveShortAnswer(this.value)" />`;
+      }
+
+      html += `</div>`;
+      document.getElementById('singleQuestion').innerHTML = html;
+
+      document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+      document.getElementById('nextBtn').classList.toggle('hidden', currentQuestionIndex === total - 1);
+      document.getElementById('submitBtn').classList.toggle('hidden', currentQuestionIndex !== total - 1);
+    }
+
+    function selectAnswer(value, btn) {
+      studentAnswers[currentQuestionIndex] = value;
+      const parent = btn.parentElement;
+      parent.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('answerStatus').textContent = '응답 완료';
+    }
+
+    function saveShortAnswer(value) {
+      studentAnswers[currentQuestionIndex] = value;
+      document.getElementById('answerStatus').textContent = value.trim() ? '응답 완료' : '미응답';
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderSingleQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < activeQuizData.questions.length - 1) {
+        currentQuestionIndex++;
+        renderSingleQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function normalize(text) {
+      return String(text).replace(/\s/g, '').toLowerCase();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function checkAnswers() {
+      const unanswered = studentAnswers.findIndex(answer => !String(answer).trim());
+      if (unanswered !== -1) {
+        const keepGoing = confirm(`${unanswered + 1}번 문제가 아직 비어 있습니다. 그래도 제출할까요?`);
+        if (!keepGoing) {
+          currentQuestionIndex = unanswered;
+          renderSingleQuestion();
+          return;
+        }
+      }
+
+      const data = activeQuizData || JSON.parse(localStorage.getItem('quizData'));
+      let score = 0;
+      let review = '';
+
+      data.questions.forEach((q, index) => {
+        const student = String(studentAnswers[index] || '').trim();
+        let isCorrect = false;
+        if (q.type === '단답형') {
+          isCorrect = normalize(student) === normalize(q.answer);
+        } else {
+          isCorrect = student === q.answer;
+        }
+        if (isCorrect) score++;
+        review += `
+          <div class="review-item">
+            <strong>${index + 1}. ${q.text}</strong><br>
+            내 답: ${student || '미입력'}<br>
+            정답: ${q.answer}<br>
+            <span class="${isCorrect ? 'correct' : 'wrong'}">${isCorrect ? '정답' : '오답'}</span>
+          </div>`;
+      });
+
+      document.getElementById('resultBox').innerHTML = `
+        <div class="result">
+          <div>총 6문제 중</div>
+          <div class="score">${score}점</div>
+          <div>${score >= 5 ? '아주 잘했어요!' : score >= 3 ? '조금만 더 복습해요!' : '다시 한번 차근차근 풀어봐요!'}</div>
+        </div>
+        <h2 style="margin-top:22px;">풀이 결과</h2>
+        ${review}`;
+
+      document.getElementById('quizPanel').classList.add('hidden');
+      document.getElementById('resultPanel').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function retryQuiz() {
+      const data = activeQuizData || JSON.parse(localStorage.getItem('quizData'));
+      activeQuizData = data;
+      currentQuestionIndex = 0;
+      studentAnswers = new Array(data.questions.length).fill('');
+      renderSingleQuestion();
+      document.getElementById('resultPanel').classList.add('hidden');
+      document.getElementById('quizPanel').classList.remove('hidden');
+    }
+
+    function backToEdit() {
+      document.getElementById('quizPanel').classList.add('hidden');
+      document.getElementById('resultPanel').classList.add('hidden');
+      document.getElementById('teacherPanel').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetAll() {
+      if (!confirm('입력한 내용을 모두 지울까요?')) return;
+      document.getElementById('topic').value = '';
+      makeInputs();
+      localStorage.removeItem('quizData');
+      activeQuizData = null;
+      currentQuestionIndex = 0;
+      studentAnswers = [];
+    }
+
+    function fillSample() {
+      document.getElementById('topic').value = 'AI와 생성형 AI 바르게 사용하기';
+
+      document.getElementById('oxQ1').value = 'AI는 인터넷 없이도 항상 모든 정보를 알 수 있다.';
+      document.getElementById('oxA1').value = 'X';
+      document.getElementById('oxQ2').value = 'AI는 학습한 자료에 따라 다른 결과를 만들 수 있다.';
+      document.getElementById('oxA2').value = 'O';
+
+      document.getElementById('mcQ1').value = '생성형 AI의 설명으로 가장 알맞은 것은?';
+      document.getElementById('mc1o1').value = '사람 대신 실제로 생각하는 기계';
+      document.getElementById('mc1o2').value = '새로운 글이나 그림을 만들어 주는 AI';
+      document.getElementById('mc1o3').value = '인터넷을 없애는 기술';
+      document.getElementById('mc1o4').value = '게임만 하는 컴퓨터';
+      document.getElementById('mcA1').value = '2';
+
+      document.getElementById('mcQ2').value = '다음 중 생성형 AI를 사용할 때 가장 필요한 태도는 무엇인가요?';
+      document.getElementById('mc2o1').value = 'AI의 답을 그대로 사용한다.';
+      document.getElementById('mc2o2').value = 'AI가 만든 정보가 맞는지 확인한다.';
+      document.getElementById('mc2o3').value = 'AI가 만든 것은 모두 내 작품이라고 생각한다.';
+      document.getElementById('mc2o4').value = 'AI는 절대 틀리지 않는다고 믿는다.';
+      document.getElementById('mcA2').value = '2';
+
+      document.getElementById('shortQ1').value = '글이나 그림을 새롭게 만들어 주는 AI를 무엇이라고 하나요?';
+      document.getElementById('shortA1').value = '생성형 AI';
+      document.getElementById('shortQ2').value = 'AI를 사용할 때 남에게 알려주면 안 되는 중요한 정보를 무엇이라고 하나요?';
+      document.getElementById('shortA2').value = '개인정보';
+    }
+
+    makeInputs();
+    fillSample();
+  </script>
+</body>
+</html>
