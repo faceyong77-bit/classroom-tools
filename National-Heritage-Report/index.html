@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>국가유산 탐험대 보고서 만들기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(251, 191, 36, .35), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, .28), transparent 30%),
+        linear-gradient(135deg, #fef3c7 0%, #dbeafe 47%, #dcfce7 100%);
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    .font-jua { font-family: 'Jua', sans-serif; }
+
+    textarea, input, select {
+      font-size: 16px;
+      outline: none;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 4px rgba(251, 146, 60, .2);
+    }
+
+    .hero-card {
+      background: rgba(255, 255, 255, .82);
+      backdrop-filter: blur(10px);
+      border: 3px solid rgba(255, 255, 255, .85);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    }
+
+    .field-card {
+      background: rgba(255, 255, 255, .94);
+      border: 3px solid #ffffff;
+      border-radius: 26px;
+      padding: 20px;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .field-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 9px;
+      background: linear-gradient(90deg, #fb7185, #f59e0b, #22c55e, #38bdf8, #a78bfa);
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: #111827;
+      color: #fff;
+      font-weight: 900;
+      margin-right: 8px;
+    }
+
+    .voice-btn.recording {
+      background: #ef4444 !important;
+      color: white !important;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    .float-icon {
+      position: fixed;
+      z-index: -1;
+      font-size: 72px;
+      opacity: .17;
+      animation: float 7s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-18px) rotate(4deg); }
+    }
+
+    #reportArea {
+      background: #fffdf7;
+      color: #111827;
+      width: 794px;
+      min-height: 1123px;
+      margin: 0 auto;
+      padding: 42px;
+      box-sizing: border-box;
+      border: 10px solid #fde68a;
+    }
+
+    .report-box {
+      border: 2px solid #334155;
+      border-radius: 16px;
+      padding: 15px;
+      min-height: 72px;
+      background: #ffffff;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      line-height: 1.65;
+    }
+
+    .report-label {
+      display: inline-block;
+      background: linear-gradient(90deg, #0f172a, #334155);
+      color: white;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-weight: 900;
+      margin-bottom: 7px;
+      font-size: 15px;
+    }
+
+    .report-title-box {
+      border: 4px solid #111827;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #fef3c7, #e0f2fe);
+      padding: 18px;
+    }
+
+    @media print {
+      body { background: white; }
+      .no-print, .float-icon { display: none !important; }
+      #reportArea { box-shadow: none; width: 100%; min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="float-icon" style="top: 90px; left: 35px;">🏛️</div>
+  <div class="float-icon" style="top: 180px; right: 50px; animation-delay: 1s;">🔎</div>
+  <div class="float-icon" style="bottom: 80px; left: 70px; animation-delay: 2s;">⭐</div>
+
+  <main class="max-w-6xl mx-auto p-4 md:p-8">
+    <section class="no-print hero-card text-center mb-8 rounded-[32px] p-8">
+      <div class="inline-block bg-orange-100 text-orange-700 px-5 py-2 rounded-full font-black mb-4 border-2 border-orange-200">🏛️ 4학년 사회 · 국가유산 탐험 활동</div>
+      <h1 class="font-jua text-4xl md:text-6xl text-slate-800 mb-3">국가유산 탐험대 보고서</h1>
+      <p class="text-slate-600 text-lg md:text-xl font-bold">우리 모둠이 조사한 국가유산을 멋진 소개 보고서로 완성해 보세요!</p>
+      <div class="mt-5 flex flex-wrap justify-center gap-2 text-sm font-black">
+        <span class="px-4 py-2 rounded-full bg-pink-100 text-pink-700">📷 사진 넣기</span>
+        <span class="px-4 py-2 rounded-full bg-sky-100 text-sky-700">🎤 음성 입력</span>
+        <span class="px-4 py-2 rounded-full bg-emerald-100 text-emerald-700">📄 PDF 저장</span>
+      </div>
+    </section>
+
+    <section class="no-print grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+      <div class="field-card">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">1</span>모둠 이름</label>
+        <input id="teamName" class="w-full border-2 rounded-2xl p-3 bg-yellow-50" placeholder="예: 문화유산 탐험대" />
+        <button onclick="startVoice('teamName', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+
+      <div class="field-card">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">2</span>모둠원 이름</label>
+        <input id="members" class="w-full border-2 rounded-2xl p-3 bg-yellow-50" placeholder="예: 김○○, 이○○, 박○○, 최○○" />
+        <button onclick="startVoice('members', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+
+      <div class="field-card lg:col-span-2">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">3</span>국가유산 사진</label>
+        <p class="text-sm text-slate-500 mb-3 font-bold">사진을 선택하면 보고서에 자동으로 들어갑니다.</p>
+        <input id="photoInput" type="file" accept="image/*" class="block w-full border-2 rounded-2xl p-3 bg-white" />
+        <div id="photoPreviewBox" class="mt-4 hidden">
+          <img id="photoPreview" class="max-h-72 rounded-3xl border-4 border-white shadow-lg mx-auto object-contain" alt="국가유산 사진 미리보기" />
+        </div>
+      </div>
+
+      <div class="field-card">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">4</span>국가유산 이름</label>
+        <input id="heritageName" class="w-full border-2 rounded-2xl p-3 bg-white" placeholder="예: 훈민정음 해례본" />
+        <button onclick="startVoice('heritageName', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+
+      <div class="field-card">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">5</span>유형</label>
+        <select id="heritageType" class="w-full border-2 rounded-2xl p-3 bg-white">
+          <option value="">유형을 선택하세요</option>
+          <option>문화유산</option>
+          <option>자연유산</option>
+          <option>무형유산</option>
+          <option>기타</option>
+        </select>
+      </div>
+
+      <div class="field-card lg:col-span-2">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">6</span>간단한 소개</label>
+        <textarea id="intro" rows="4" class="w-full border-2 rounded-2xl p-3 bg-white" placeholder="어디에 있는지, 언제 만들어졌는지, 어떤 특징이 있는지 간단히 적어 봅시다."></textarea>
+        <button onclick="startVoice('intro', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+
+      <div class="field-card lg:col-span-2">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">7</span>국가유산의 가치</label>
+        <textarea id="value" rows="4" class="w-full border-2 rounded-2xl p-3 bg-white" placeholder="역사적 가치, 과학적 가치, 예술적 가치, 자연·생태적 가치 등을 생각하며 적어 봅시다."></textarea>
+        <button onclick="startVoice('value', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+
+      <div class="field-card">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">8</span>알게 된 점</label>
+        <textarea id="learned" rows="5" class="w-full border-2 rounded-2xl p-3 bg-white" placeholder="조사하면서 새롭게 알게 된 내용을 적어 봅시다."></textarea>
+        <button onclick="startVoice('learned', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+
+      <div class="field-card">
+        <label class="block font-black text-xl mb-2"><span class="step-badge">9</span>느낀 점</label>
+        <textarea id="feeling" rows="5" class="w-full border-2 rounded-2xl p-3 bg-white" placeholder="국가유산을 보며 느낀 점이나 지키고 싶은 마음을 적어 봅시다."></textarea>
+        <button onclick="startVoice('feeling', this)" class="voice-btn mt-3 px-4 py-2 rounded-2xl bg-sky-100 text-sky-800 font-black">🎤 음성으로 입력</button>
+      </div>
+    </section>
+
+    <section class="no-print flex flex-wrap justify-center gap-3 mb-8 sticky bottom-3 z-10">
+      <button onclick="makeReport()" class="px-7 py-4 rounded-3xl bg-indigo-600 text-white font-black text-xl shadow-xl border-4 border-white">✨ 보고서 만들기</button>
+      <button onclick="clearAll()" class="px-6 py-4 rounded-3xl bg-white text-slate-800 font-black text-lg shadow-xl border-4 border-slate-200">↺ 처음부터 다시 쓰기</button>
+    </section>
+
+    <section id="reportArea" class="shadow-2xl rounded-sm">
+      <div class="report-title-box text-center mb-5">
+        <div class="text-3xl mb-1">🏛️ 🔎 ⭐</div>
+        <h2 class="font-jua text-4xl mb-2">국가유산 탐험대 보고서</h2>
+        <p id="reportTeam" class="text-lg font-black text-slate-700">모둠 이름: </p>
+        <p id="reportMembers" class="text-base font-bold text-slate-600">모둠원: </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 mb-5">
+        <div class="border-4 border-slate-800 rounded-3xl p-4 flex items-center justify-center min-h-[260px] bg-white">
+          <img id="reportPhoto" class="max-h-[240px] max-w-full object-contain hidden rounded-2xl" alt="보고서 사진" />
+          <p id="noPhotoText" class="text-slate-400 font-black text-xl">사진을 넣어 주세요</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <span class="report-label">국가유산 이름</span>
+            <div id="reportName" class="report-box text-2xl font-black">&nbsp;</div>
+          </div>
+          <div>
+            <span class="report-label">유형</span>
+            <div id="reportType" class="report-box text-xl font-bold">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <span class="report-label">간단한 소개</span>
+          <div id="reportIntro" class="report-box">&nbsp;</div>
+        </div>
+        <div>
+          <span class="report-label">국가유산의 가치</span>
+          <div id="reportValue" class="report-box">&nbsp;</div>
+        </div>
+        <div>
+          <span class="report-label">국가유산을 통해 알게 된 점</span>
+          <div id="reportLearned" class="report-box">&nbsp;</div>
+        </div>
+        <div>
+          <span class="report-label">느낀 점</span>
+          <div id="reportFeeling" class="report-box">&nbsp;</div>
+        </div>
+      </div>
+
+      <div class="mt-7 border-t-4 border-dashed border-amber-300 pt-4 text-center text-base font-black text-slate-600">
+        우리가 찾은 국가유산의 가치를 미래 세대에게 전해요!
+      </div>
+
+      <div class="no-print mt-8 flex flex-wrap justify-center gap-4">
+        <button onclick="savePDF()" class="px-8 py-4 rounded-3xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xl shadow-2xl border-4 border-white transition-all">
+          📄 PDF로 저장하기
+        </button>
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="px-8 py-4 rounded-3xl bg-sky-500 hover:bg-sky-600 text-white font-black text-xl shadow-2xl border-4 border-white transition-all">
+          ⬆️ 위로 올라가기
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let photoData = '';
+    let recognition = null;
+    let activeButton = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    $('photoInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        photoData = e.target.result;
+        $('photoPreview').src = photoData;
+        $('photoPreviewBox').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function valueOf(id) {
+      return $(id).value.trim() || ' ';
+    }
+
+    function setText(id, text) {
+      $(id).textContent = text && text.trim() ? text : ' ';
+    }
+
+    function startVoice(targetId, button) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert('이 브라우저는 음성 입력을 지원하지 않습니다. 크롬 브라우저에서 실행해 주세요.');
+        return;
+      }
+
+      if (recognition && activeButton === button) {
+        recognition.stop();
+        return;
+      }
+
+      if (recognition) {
+        recognition.stop();
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ko-KR';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      activeButton = button;
+
+      button.classList.add('recording');
+      button.textContent = '● 녹음 중... 다시 누르면 종료';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const target = $(targetId);
+        const spacer = target.value.trim() ? ' ' : '';
+        target.value += spacer + transcript;
+      };
+
+      recognition.onerror = function() {
+        alert('음성 입력이 잘 되지 않았습니다. 마이크 권한을 확인하거나 다시 시도해 주세요.');
+      };
+
+      recognition.onend = function() {
+        if (activeButton) {
+          activeButton.classList.remove('recording');
+          activeButton.textContent = '🎤 음성으로 입력';
+        }
+        recognition = null;
+        activeButton = null;
+      };
+
+      recognition.start();
+    }
+
+    async function savePDF() {
+      makeReport(false);
+
+      const saveButtons = document.querySelectorAll('.no-print');
+      saveButtons.forEach(el => el.style.visibility = 'hidden');
+
+      const element = $('reportArea');
+      const name = valueOf('heritageName').replace(/[\/:*?"<>|]/g, '') || '국가유산_보고서';
+      const fileName = name + '_탐험대_보고서.pdf';
+
+      try {
+        if (!window.html2canvas || !window.jspdf) {
+          throw new Error('PDF 저장 라이브러리를 불러오지 못했습니다.');
+        }
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          backgroundColor: '#fffdf7',
+          useCORS: true,
+          allowTaint: true,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: document.documentElement.scrollWidth
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const imgWidth = pageWidth;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        pdf.save(fileName);
+        alert('PDF 저장을 시작했습니다. 브라우저의 다운로드 폴더를 확인해 주세요.');
+      } catch (error) {
+        alert('자동 PDF 저장이 되지 않았습니다. 인쇄 창을 열어 PDF로 저장합니다.');
+        window.print();
+      } finally {
+        saveButtons.forEach(el => el.style.visibility = 'visible');
+      }
+    }
+
+    function makeReport(scroll = true) {
+      setText('reportName', valueOf('heritageName'));
+      setText('reportType', valueOf('heritageType'));
+      setText('reportIntro', valueOf('intro'));
+      setText('reportValue', valueOf('value'));
+      setText('reportLearned', valueOf('learned'));
+      setText('reportFeeling', valueOf('feeling'));
+      $('reportTeam').textContent = '모둠 이름: ' + valueOf('teamName');
+      $('reportMembers').textContent = '모둠원: ' + valueOf('members');
+
+      if (photoData) {
+        $('reportPhoto').src = photoData;
+        $('reportPhoto').classList.remove('hidden');
+        $('noPhotoText').classList.add('hidden');
+      } else {
+        $('reportPhoto').classList.add('hidden');
+        $('noPhotoText').classList.remove('hidden');
+      }
+
+      if (scroll) {
+        $('reportArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function clearAll() {
+      if (!confirm('작성한 내용을 모두 지울까요?')) return;
+      ['teamName', 'members', 'heritageName', 'heritageType', 'intro', 'value', 'learned', 'feeling'].forEach(id => $(id).value = '');
+      $('photoInput').value = '';
+      photoData = '';
+      $('photoPreviewBox').classList.add('hidden');
+      makeReport();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    makeReport(false);
+  </script>
+</body>
+</html>
