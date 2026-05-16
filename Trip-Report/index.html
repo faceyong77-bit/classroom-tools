@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V.I.A 답사 결과 정리 학습지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: #f1f5f9; color: #1e293b; }
+    textarea { resize: vertical; }
+    .a4-report {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+    }
+    .print-photo {
+      width: 100%;
+      min-height: 180px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 18px;
+      background: #f8fafc;
+      object-fit: cover;
+    }
+    .photo-box img { max-height: 250px; object-fit: cover; }
+    .section-title { word-break: keep-all; }
+    @media print {
+      @page { size: A4; margin: 8mm; }
+      body { background: white; }
+      .no-print { display: none !important; }
+      main { padding: 0 !important; }
+      .a4-report { width: 100%; min-height: auto; box-shadow: none; margin: 0; border-radius: 0 !important; }
+      input, textarea { border: none !important; background: transparent !important; padding: 0 !important; }
+      .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="no-print sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+      <div>
+        <h1 class="text-xl md:text-2xl font-extrabold text-slate-800">V.I.A 답사 결과 정리 학습지</h1>
+        <p class="text-sm text-slate-500">사진과 답사 내용을 정리한 뒤 PDF로 저장하세요. 직접 저장이 안 되면 인쇄창에서 PDF로 저장하세요.</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button id="savePdfBtn" type="button" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700">PDF 저장</button>
+        <button id="printPdfBtn" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold shadow hover:bg-indigo-700">인쇄창으로 PDF 저장</button>
+        <button id="clearBtn" type="button" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold hover:bg-slate-300">처음부터 다시</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="p-4 md:p-8">
+    <section id="report" class="a4-report p-6 md:p-9 rounded-2xl md:rounded-none">
+      <div class="border-4 border-blue-100 rounded-3xl p-5 mb-5 bg-gradient-to-br from-blue-50 to-white avoid-break">
+        <p class="text-sm font-bold text-blue-600 mb-1">좌동 유산 나들이 · 답사 후 정리</p>
+        <h2 class="text-3xl font-extrabold text-slate-900 mb-3">V.I.A 답사 보고서</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label class="block">
+            <span class="text-sm font-bold text-slate-600">이름</span>
+            <input id="studentName" class="w-full mt-1 p-3 rounded-xl border border-slate-300 bg-white" placeholder="이름을 써요" />
+          </label>
+          <label class="block">
+            <span class="text-sm font-bold text-slate-600">답사 장소</span>
+            <input id="place" class="w-full mt-1 p-3 rounded-xl border border-slate-300 bg-white" placeholder="예: 좌동 구석기 유적비" />
+          </label>
+          <label class="block">
+            <span class="text-sm font-bold text-slate-600">답사 날짜</span>
+            <input id="date" type="date" class="w-full mt-1 p-3 rounded-xl border border-slate-300 bg-white" />
+          </label>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <section class="rounded-3xl border-2 border-amber-200 bg-amber-50 p-5 avoid-break">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-400 text-white flex items-center justify-center text-2xl font-extrabold">V</div>
+            <div>
+              <h3 class="section-title text-xl font-extrabold">Value 답사를 하게 된 까닭</h3>
+              <p class="text-sm text-slate-600">답사 전에 가진 궁금증, 기대, 마음을 정리해요.</p>
+            </div>
+          </div>
+          <textarea id="value" rows="5" class="w-full p-4 rounded-2xl border border-amber-200 bg-white" placeholder="왜 이 장소를 답사하게 되었나요? 답사 전에 어떤 점이 궁금했나요? 어떤 마음으로 답사에 참여했나요?"></textarea>
+        </section>
+
+        <section class="rounded-3xl border-2 border-sky-200 bg-sky-50 p-5 avoid-break">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center text-2xl font-extrabold">I</div>
+            <div>
+              <h3 class="section-title text-xl font-extrabold">Inquiry 보고 · 듣고 · 느끼며 질문하기</h3>
+              <p class="text-sm text-slate-600">답사 사진을 바탕으로 관찰하고, 질문을 만들고, 답을 찾아요.</p>
+            </div>
+          </div>
+
+          <div class="mb-4 flex justify-end no-print">
+            <button id="addPhotoBtn" type="button" class="px-4 py-2 rounded-xl bg-sky-600 text-white font-bold shadow hover:bg-sky-700">사진 추가하기</button>
+          </div>
+
+          <div id="photoCards" class="grid grid-cols-1 gap-5">
+            <div class="photo-card rounded-3xl border border-sky-200 bg-white p-4 avoid-break" data-photo-index="1">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-extrabold">답사 사진 1</h4>
+                <label class="no-print cursor-pointer px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+                  사진 넣기
+                  <input type="file" accept="image/*" class="hidden photo-input" />
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div class="photo-placeholder print-photo flex items-center justify-center text-slate-400 text-center p-5">
+                    답사하며 찍은 사진을 넣어 보세요.
+                  </div>
+                  <img class="photo-preview hidden print-photo" alt="답사 사진" />
+                </div>
+                <div>
+                  <h5 class="font-extrabold text-slate-800 mb-2">사진을 보고 관찰하기</h5>
+                  <textarea class="photo-observe w-full p-4 rounded-2xl border border-slate-300 bg-white" rows="7" placeholder="사진 속에서 무엇을 보았나요?
+답사하며 무엇을 들었나요?
+유적을 살펴보며 어떤 느낌이 들었나요?"></textarea>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between mb-3">
+                <h5 class="font-extrabold text-slate-800">사진과 관련된 질문과 답</h5>
+                <button type="button" class="add-question-btn no-print px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700">질문 추가</button>
+              </div>
+
+              <div class="question-list grid grid-cols-1 gap-3">
+                <div class="question-card rounded-2xl border border-sky-100 bg-sky-50 p-3">
+                  <div class="flex items-center justify-between mb-2">
+                    <h6 class="question-title font-extrabold text-slate-700">질문 1</h6>
+                    <button type="button" class="remove-question-btn no-print hidden px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-300">삭제</button>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <textarea class="photo-question w-full p-4 rounded-2xl border border-sky-200 bg-white" rows="4" placeholder="사진을 보고 떠오른 질문을 써 보세요."></textarea>
+                    <textarea class="photo-answer w-full p-4 rounded-2xl border border-sky-200 bg-white" rows="4" placeholder="답사, 설명 듣기, 친구와 이야기하기, 조사하기를 통해 찾은 답을 써 보세요."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-3xl border-2 border-emerald-200 bg-emerald-50 p-5 avoid-break">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-2xl font-extrabold">A</div>
+            <div>
+              <h3 class="section-title text-xl font-extrabold">Action 답사를 마치고 실천하기</h3>
+              <p class="text-sm text-slate-600">답사 후 알게 된 점, 느낀 점, 실천하고 싶은 점을 정리해요.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <h4 class="font-extrabold text-slate-800 mb-2">답사를 마치고 알게 된 점과 느낀 점</h4>
+              <textarea id="review" rows="5" class="w-full p-4 rounded-2xl border border-emerald-200 bg-white" placeholder="답사를 마치고 새롭게 알게 된 점은 무엇인가요?\n가장 기억에 남는 장면과 느낀 점은 무엇인가요?"></textarea>
+            </div>
+            <div>
+              <h4 class="font-extrabold text-slate-800 mb-2">실천하고 싶은 점</h4>
+              <textarea id="action" rows="4" class="w-full p-4 rounded-2xl border border-emerald-200 bg-white" placeholder="이 유산을 지키고 알리기 위해 앞으로 내가 실천하고 싶은 일을 써 보세요.\n예: 가족에게 소개하기, 소개 카드 만들기, 유산 주변을 깨끗하게 이용하기"></textarea>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5 avoid-break">
+        <h3 class="text-lg font-extrabold mb-3">스스로 돌아보기</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <label class="flex items-center gap-2 bg-white rounded-xl p-3 border"><input id="checkReason" type="checkbox" /> 답사 전의 생각과 까닭을 정리했다.</label>
+          <label class="flex items-center gap-2 bg-white rounded-xl p-3 border"><input id="checkQuestion" type="checkbox" /> 사진을 보며 질문을 만들고 답했다.</label>
+          <label class="flex items-center gap-2 bg-white rounded-xl p-3 border"><input id="checkAction" type="checkbox" /> 답사 후 실천하고 싶은 일을 정리했다.</label>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'via-field-trip-report-v3';
+    const fields = ['studentName', 'place', 'date', 'value', 'review', 'action'];
+    const checks = ['checkReason', 'checkQuestion', 'checkAction'];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function getValue(id) {
+      const el = byId(id);
+      return el ? el.value : '';
+    }
+
+    function setValue(id, value) {
+      const el = byId(id);
+      if (el) el.value = value || '';
+    }
+
+    function getChecked(id) {
+      const el = byId(id);
+      return !!(el && el.checked);
+    }
+
+    function setChecked(id, value) {
+      const el = byId(id);
+      if (el) el.checked = !!value;
+    }
+
+    function loadPhoto(event) {
+      const input = event.target;
+      const file = input.files && input.files[0];
+      if (!file) return;
+
+      const card = input.closest('.photo-card');
+      if (!card) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = card.querySelector('.photo-preview');
+        const placeholder = card.querySelector('.photo-placeholder');
+        if (!img || !placeholder) return;
+
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        saveToLocal();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function createPhotoCard(data = {}) {
+      const container = byId('photoCards');
+      if (!container) return;
+
+      const index = container.querySelectorAll('.photo-card').length + 1;
+      const card = document.createElement('div');
+      card.className = 'photo-card rounded-3xl border border-sky-200 bg-white p-4 avoid-break';
+      card.dataset.photoIndex = String(index);
+      card.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-lg font-extrabold">답사 사진 ${index}</h4>
+          <div class="flex gap-2 no-print">
+            <label class="cursor-pointer px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+              사진 넣기
+              <input type="file" accept="image/*" class="hidden photo-input" />
+            </label>
+            <button type="button" class="remove-photo-btn px-3 py-2 rounded-lg bg-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-300">삭제</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <div class="photo-placeholder print-photo flex items-center justify-center text-slate-400 text-center p-5">답사하며 찍은 사진을 넣어 보세요.</div>
+            <img class="photo-preview hidden print-photo" alt="답사 사진" />
+          </div>
+          <div>
+            <h5 class="font-extrabold text-slate-800 mb-2">사진을 보고 관찰하기</h5>
+            <textarea class="photo-observe w-full p-4 rounded-2xl border border-slate-300 bg-white" rows="7" placeholder="사진 속에서 무엇을 보았나요?
+답사하며 무엇을 들었나요?
+유적을 살펴보며 어떤 느낌이 들었나요?"></textarea>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mb-3">
+          <h5 class="font-extrabold text-slate-800">사진과 관련된 질문과 답</h5>
+          <button type="button" class="add-question-btn no-print px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700">질문 추가</button>
+        </div>
+        <div class="question-list grid grid-cols-1 gap-3">
+          <div class="question-card rounded-2xl border border-sky-100 bg-sky-50 p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h6 class="question-title font-extrabold text-slate-700">질문 1</h6>
+              <button type="button" class="remove-question-btn no-print hidden px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-300">삭제</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <textarea class="photo-question w-full p-4 rounded-2xl border border-sky-200 bg-white" rows="4" placeholder="사진을 보고 떠오른 질문을 써 보세요."></textarea>
+              <textarea class="photo-answer w-full p-4 rounded-2xl border border-sky-200 bg-white" rows="4" placeholder="답사, 설명 듣기, 친구와 이야기하기, 조사하기를 통해 찾은 답을 써 보세요."></textarea>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(card);
+      hydratePhotoCard(card, data);
+      renumberPhotoCards();
+    }
+
+    function createQuestionCard(card, data = {}) {
+      const list = card.querySelector('.question-list');
+      if (!list) return;
+
+      const questionCard = document.createElement('div');
+      questionCard.className = 'question-card rounded-2xl border border-sky-100 bg-sky-50 p-3';
+      questionCard.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <h6 class="question-title font-extrabold text-slate-700">질문</h6>
+          <button type="button" class="remove-question-btn no-print px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-300">삭제</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <textarea class="photo-question w-full p-4 rounded-2xl border border-sky-200 bg-white" rows="4" placeholder="사진을 보고 떠오른 질문을 써 보세요."></textarea>
+          <textarea class="photo-answer w-full p-4 rounded-2xl border border-sky-200 bg-white" rows="4" placeholder="답사, 설명 듣기, 친구와 이야기하기, 조사하기를 통해 찾은 답을 써 보세요."></textarea>
+        </div>
+      `;
+      list.appendChild(questionCard);
+      hydrateQuestionCard(card, questionCard, data);
+      renumberQuestions(card);
+    }
+
+    function hydrateQuestionCard(card, questionCard, data = {}) {
+      const question = questionCard.querySelector('.photo-question');
+      const answer = questionCard.querySelector('.photo-answer');
+      const removeBtn = questionCard.querySelector('.remove-question-btn');
+
+      if (question) {
+        question.value = data.question || '';
+        question.addEventListener('input', saveToLocal);
+      }
+      if (answer) {
+        answer.value = data.answer || '';
+        answer.addEventListener('input', saveToLocal);
+      }
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+          questionCard.remove();
+          renumberQuestions(card);
+          saveToLocal();
+        });
+      }
+    }
+
+    function renumberQuestions(card) {
+      const questionCards = card.querySelectorAll('.question-card');
+      questionCards.forEach((questionCard, idx) => {
+        const title = questionCard.querySelector('.question-title');
+        const removeBtn = questionCard.querySelector('.remove-question-btn');
+        if (title) title.textContent = `질문 ${idx + 1}`;
+        if (removeBtn) removeBtn.classList.toggle('hidden', questionCards.length === 1);
+      });
+    }
+
+    function hydratePhotoCard(card, data = {}) {
+      const input = card.querySelector('.photo-input');
+      const removeBtn = card.querySelector('.remove-photo-btn');
+      const addQuestionBtn = card.querySelector('.add-question-btn');
+      const observe = card.querySelector('.photo-observe');
+      const preview = card.querySelector('.photo-preview');
+      const placeholder = card.querySelector('.photo-placeholder');
+      const questionList = card.querySelector('.question-list');
+
+      if (input) input.addEventListener('change', loadPhoto);
+      if (removeBtn) removeBtn.addEventListener('click', function() {
+        card.remove();
+        renumberPhotoCards();
+        saveToLocal();
+      });
+      if (addQuestionBtn) addQuestionBtn.addEventListener('click', function() {
+        createQuestionCard(card);
+        saveToLocal();
+      });
+      if (observe) {
+        observe.value = data.observe || '';
+        observe.addEventListener('input', saveToLocal);
+      }
+
+      if (questionList) {
+        questionList.innerHTML = '';
+        const questions = Array.isArray(data.questions) && data.questions.length > 0
+          ? data.questions
+          : [{ question: data.question || '', answer: data.answer || '' }];
+        questions.forEach(item => createQuestionCard(card, item));
+      }
+
+      if (data.image && preview && placeholder) {
+        preview.src = data.image;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      }
+    }
+
+    function renumberPhotoCards() {
+      const cards = document.querySelectorAll('.photo-card');
+      cards.forEach((card, idx) => {
+        card.dataset.photoIndex = String(idx + 1);
+        const title = card.querySelector('h4');
+        if (title) title.textContent = `답사 사진 ${idx + 1}`;
+        const removeBtn = card.querySelector('.remove-photo-btn');
+        if (removeBtn) removeBtn.classList.toggle('hidden', cards.length === 1);
+      });
+    }
+
+    function getQuestionData(card) {
+      return Array.from(card.querySelectorAll('.question-card')).map(questionCard => ({
+        question: questionCard.querySelector('.photo-question') ? questionCard.querySelector('.photo-question').value : '',
+        answer: questionCard.querySelector('.photo-answer') ? questionCard.querySelector('.photo-answer').value : ''
+      }));
+    }
+
+    function getPhotoData() {
+      return Array.from(document.querySelectorAll('.photo-card')).map(card => ({
+        image: (card.querySelector('.photo-preview') && !card.querySelector('.photo-preview').classList.contains('hidden')) ? card.querySelector('.photo-preview').src : '',
+        observe: card.querySelector('.photo-observe') ? card.querySelector('.photo-observe').value : '',
+        questions: getQuestionData(card)
+      }));
+    }
+
+    function saveToLocal() {
+      const data = {};
+      fields.forEach(id => data[id] = getValue(id));
+      checks.forEach(id => data[id] = getChecked(id));
+      data.photos = getPhotoData();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadFromLocal() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          fields.forEach(id => setValue(id, data[id]));
+          checks.forEach(id => setChecked(id, data[id]));
+          if (Array.isArray(data.photos) && data.photos.length > 0) {
+            const container = byId('photoCards');
+            if (container) container.innerHTML = '';
+            data.photos.forEach(photo => createPhotoCard(photo));
+          }
+        } catch (error) {
+          console.warn('저장된 자료를 불러오지 못했습니다.', error);
+        }
+      }
+
+      renumberPhotoCards();
+    }
+
+    document.addEventListener('input', function(e) {
+      if (e.target && (fields.includes(e.target.id) || e.target.classList.contains('photo-observe') || e.target.classList.contains('photo-question') || e.target.classList.contains('photo-answer'))) saveToLocal();
+    });
+
+    document.addEventListener('change', function(e) {
+      if (e.target && checks.includes(e.target.id)) saveToLocal();
+    });
+
+    function getSafeFileName(text) {
+      return String(text || '')
+        .replace(/[^가-힣a-zA-Z0-9_\-]/g, '_')
+        .replace(/_+/g, '_')
+        .slice(0, 40) || '답사보고서';
+    }
+
+    function makeStaticReportClone() {
+      const original = byId('report');
+      if (!original) throw new Error('보고서 영역을 찾을 수 없습니다.');
+
+      const clone = original.cloneNode(true);
+
+      clone.querySelectorAll('input, textarea').forEach(el => {
+        if (el.type === 'checkbox') {
+          const mark = document.createElement('span');
+          mark.textContent = el.checked ? '☑' : '☐';
+          mark.style.fontWeight = '800';
+          mark.style.marginRight = '6px';
+          el.replaceWith(mark);
+          return;
+        }
+
+        const box = document.createElement('div');
+        box.className = el.className;
+        box.style.whiteSpace = 'pre-wrap';
+        box.style.minHeight = el.tagName === 'TEXTAREA' ? '80px' : '48px';
+        box.style.background = '#ffffff';
+        box.style.color = '#1e293b';
+        box.style.border = '1px solid #cbd5e1';
+        box.style.borderRadius = '14px';
+        box.style.padding = '12px';
+        box.textContent = el.value || '';
+        el.replaceWith(box);
+      });
+
+      clone.querySelectorAll('.no-print').forEach(el => el.remove());
+      clone.style.width = '210mm';
+      clone.style.minHeight = '297mm';
+      clone.style.boxShadow = 'none';
+      clone.style.margin = '0';
+      clone.style.borderRadius = '0';
+      clone.style.background = '#ffffff';
+      return clone;
+    }
+
+    function savePDF() {
+      saveToLocal();
+
+      if (typeof html2pdf === 'undefined') {
+        alert('직접 PDF 저장 기능을 불러오지 못했습니다. 인쇄창에서 PDF로 저장해 주세요.');
+        printPDF();
+        return;
+      }
+
+      const name = getSafeFileName(getValue('studentName').trim() || '학생');
+      const place = getSafeFileName(getValue('place').trim() || '답사보고서');
+      const clone = makeStaticReportClone();
+      const temp = document.createElement('div');
+      temp.style.position = 'fixed';
+      temp.style.left = '-10000px';
+      temp.style.top = '0';
+      temp.style.width = '210mm';
+      temp.style.background = '#ffffff';
+      temp.appendChild(clone);
+      document.body.appendChild(temp);
+
+      const opt = {
+        margin: [5, 5, 5, 5],
+        filename: `${name}_${place}_VIA답사보고서.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      html2pdf().set(opt).from(clone).save().then(function() {
+        if (temp.parentNode) document.body.removeChild(temp);
+      }).catch(function(error) {
+        if (temp.parentNode) document.body.removeChild(temp);
+        console.error('PDF 저장 오류:', error);
+        alert('직접 PDF 저장이 막혔습니다. 인쇄창에서 대상을 PDF로 저장으로 선택해 주세요.');
+        printPDF();
+      });
+    }
+
+    function printPDF() {
+      saveToLocal();
+      window.print();
+    }
+
+    function clearAll() {
+      fields.forEach(id => setValue(id, ''));
+      checks.forEach(id => setChecked(id, false));
+
+      const container = byId('photoCards');
+      if (container) {
+        container.innerHTML = '';
+        createPhotoCard();
+      }
+
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY + '-photo');
+    }
+
+    function connectButtons() {
+      const saveBtn = byId('savePdfBtn');
+      const printBtn = byId('printPdfBtn');
+      const clearBtn = byId('clearBtn');
+
+      if (saveBtn) saveBtn.addEventListener('click', savePDF);
+      if (printBtn) printBtn.addEventListener('click', printPDF);
+      if (clearBtn) clearBtn.addEventListener('click', clearAll);
+      const addPhotoBtn = byId('addPhotoBtn');
+      if (addPhotoBtn) addPhotoBtn.addEventListener('click', function() {
+        createPhotoCard();
+        saveToLocal();
+      });
+
+      document.querySelectorAll('.photo-card').forEach(card => hydratePhotoCard(card));
+      renumberPhotoCards();
+    }
+
+    function runSelfTests() {
+      const requiredIds = ['report', 'studentName', 'place', 'date', 'value', 'review', 'action', 'photoCards', 'addPhotoBtn'];
+      const missing = requiredIds.filter(id => !byId(id));
+      console.assert(missing.length === 0, '필수 요소 누락:', missing);
+
+      console.assert(getSafeFileName('홍길동/좌동:유적?') === '홍길동_좌동_유적_', '파일명 안전 처리 테스트 실패');
+
+      const firstPhotoCard = document.querySelector('.photo-card');
+      console.assert(!!firstPhotoCard, '사진 카드 생성 테스트 실패');
+      if (firstPhotoCard) {
+        const beforeCount = firstPhotoCard.querySelectorAll('.question-card').length;
+        createQuestionCard(firstPhotoCard, { question: '테스트 질문', answer: '테스트 답' });
+        console.assert(firstPhotoCard.querySelectorAll('.question-card').length === beforeCount + 1, '질문 추가 테스트 실패');
+        const lastQuestion = firstPhotoCard.querySelector('.question-card:last-child');
+        if (lastQuestion) lastQuestion.remove();
+        renumberQuestions(firstPhotoCard);
+      }
+
+      const before = getValue('value');
+      setValue('value', '테스트 문장');
+      console.assert(getValue('value') === '테스트 문장', '입력값 저장/읽기 테스트 실패');
+      setValue('value', before);
+    }
+
+    loadFromLocal();
+    connectButtons();
+    runSelfTests();
+  </script>
+</body>
+</html>
