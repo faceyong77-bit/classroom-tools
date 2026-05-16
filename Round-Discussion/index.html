@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>돌아가며 말하기 토의 연습 프로그램</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f7ff 0%, #fff7e6 100%);
+      color: #1f2937;
+    }
+    .app {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    header {
+      background: #ffffff;
+      border: 3px solid #dbeafe;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 24px rgba(30, 64, 175, 0.08);
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      color: #1d4ed8;
+    }
+    .subtitle { font-size: 17px; line-height: 1.6; color: #475569; }
+    .step-nav {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .step-btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 10px;
+      background: #e5e7eb;
+      color: #374151;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .step-btn.active { background: #2563eb; color: #fff; }
+    .step-btn.done { background: #bbf7d0; color: #166534; }
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 24px;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      margin-bottom: 18px;
+    }
+    .hidden { display: none; }
+    h2 { margin-top: 0; font-size: 26px; color: #0f172a; }
+    h3 { color: #1e3a8a; }
+    label { display: block; font-weight: 800; margin: 12px 0 8px; }
+    input, textarea, select {
+      width: 100%;
+      border: 2px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 16px;
+      background: #fff;
+    }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.5; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #e0f2fe; color: #075985; }
+    .success { background: #16a34a; color: white; }
+    .danger { background: #ef4444; color: white; }
+    .warning { background: #f59e0b; color: white; }
+    .gray { background: #e5e7eb; color: #374151; }
+    .pill {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 800;
+      margin: 3px;
+    }
+    .guide {
+      background: #f8fafc;
+      border: 2px dashed #bfdbfe;
+      border-radius: 18px;
+      padding: 16px;
+      line-height: 1.7;
+      margin: 12px 0;
+    }
+    .opinion-card {
+      border: 2px solid #dbeafe;
+      border-radius: 20px;
+      padding: 18px;
+      margin: 14px 0;
+      background: #f8fbff;
+    }
+    .opinion-card.selected {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+    .opinion-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .opinion-title strong { font-size: 19px; }
+    .check-grid {
+      display: grid;
+      grid-template-columns: 1.3fr repeat(2, 90px) 100px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .check-head { font-weight: 900; color: #334155; }
+    .ok, .no {
+      padding: 10px 6px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+    }
+    .ok { background: #dcfce7; color: #166534; }
+    .no { background: #fee2e2; color: #991b1b; }
+    .ok.active { border-color: #15803d; background: #22c55e; color: #fff; }
+    .no.active { border-color: #b91c1c; background: #ef4444; color: #fff; }
+    .score { font-weight: 900; color: #1d4ed8; text-align: center; }
+    .turn-box {
+      background: #fff7ed;
+      border: 2px solid #fed7aa;
+      border-radius: 18px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+    .turn-name {
+      font-size: 24px;
+      font-weight: 900;
+      color: #c2410c;
+    }
+    .rec-status {
+      font-weight: 800;
+      color: #dc2626;
+      margin-left: 8px;
+    }
+    .participant-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .participant-chip {
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 10px;
+      text-align: center;
+    }
+    th { background: #eff6ff; color: #1e3a8a; }
+    .star { font-size: 30px; cursor: pointer; color: #cbd5e1; }
+    .star.on { color: #f59e0b; }
+    .print-area { background: white; }
+    @media (max-width: 800px) {
+      .step-nav { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .check-grid { grid-template-columns: 1fr 72px 72px 80px; font-size: 14px; }
+      h1 { font-size: 25px; }
+    }
+    @media print {
+      body { background: white; }
+      .step-nav, .btn-row, .no-print, button { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #aaa; page-break-inside: avoid; }
+      .hidden { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>돌아가며 말하기 토의 연습 프로그램</h1>
+      <div class="subtitle">
+        토의 주제를 정하고, 순서에 맞게 의견을 낸 뒤, 친구들의 OK/NO 검토를 거쳐 최종 의견을 선정하는 학습 프로그램입니다.
+      </div>
+    </header>
+
+    <nav class="step-nav no-print">
+      <button class="step-btn active" data-step="1">1. 주제 정하기</button>
+      <button class="step-btn" data-step="2">2. 의견 내기</button>
+      <button class="step-btn" data-step="3">3. 의견 검토</button>
+      <button class="step-btn" data-step="4">4. 최종 선정</button>
+      <button class="step-btn" data-step="5">5. 참여태도 평가</button>
+    </nav>
+
+    <main>
+      <section id="step1" class="card">
+        <h2>1단계. 토의 주제 정하기</h2>
+        <div class="guide">
+          <b>토의 주제는 이렇게 정해요.</b><br>
+          ① 친구들과 함께 해결할 수 있는 문제인가요?<br>
+          ② 여러 가지 의견이 나올 수 있나요?<br>
+          ③ 우리 생활이나 수업과 관련이 있나요?
+        </div>
+        <label>토의 주제</label>
+        <input id="topic" placeholder="예: 우리 반에서 물을 아끼기 위해 어떤 실천을 하면 좋을까?" />
+        <div class="row">
+          <div>
+            <label>모둠 이름</label>
+            <input id="teamName" placeholder="예: 푸른지구 모둠" />
+          </div>
+          <div>
+            <label>참여자 이름</label>
+            <input id="participantInput" placeholder="쉼표로 구분: 민준, 서연, 지우, 하준" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="setParticipants()">참여자 등록</button>
+          <button class="primary" onclick="goStep(2)">의견 내기로 이동</button>
+        </div>
+        <div id="participants" class="participant-list"></div>
+      </section>
+
+      <section id="step2" class="card hidden">
+        <h2>2단계. 돌아가며 의견 내기</h2>
+        <div class="guide">
+          <b>돌아가며 말하기 방법</b><br>
+          말하는 사람은 자기 의견과 근거를 말합니다. 듣는 사람은 끼어들지 않고 끝까지 듣습니다.
+        </div>
+        <div class="turn-box">
+          <div>지금 의견을 말할 차례</div>
+          <div id="currentTurn" class="turn-name">참여자를 등록해 주세요.</div>
+          <div class="btn-row">
+            <button class="warning" onclick="prevTurn()">이전 사람</button>
+            <button class="success" onclick="nextTurn()">다음 사람</button>
+          </div>
+        </div>
+
+        <label>의견을 낸 사람</label>
+        <select id="speaker"></select>
+        <label>나의 의견</label>
+        <textarea id="opinionText" placeholder="토의 주제에 어울리는 나의 의견을 적거나, 녹음 후 음성 인식 내용을 확인하세요."></textarea>
+        <label>그렇게 생각한 근거</label>
+        <textarea id="reasonText" placeholder="왜 그렇게 생각했는지 근거를 적어 보세요."></textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="toggleSpeech('opinionText')">🎙 의견 음성 입력 <span id="recStatusOpinion" class="rec-status"></span></button>
+          <button class="secondary" onclick="toggleSpeech('reasonText')">🎙 근거 음성 입력 <span id="recStatusReason" class="rec-status"></span></button>
+          <button class="primary" onclick="addOpinion()">의견 등록</button>
+          <button class="gray" onclick="clearOpinionForm()">입력창 비우기</button>
+        </div>
+        <div id="opinionListStep2"></div>
+        <div class="btn-row">
+          <button class="primary" onclick="goStep(3)">의견 검토로 이동</button>
+        </div>
+      </section>
+
+      <section id="step3" class="card hidden">
+        <h2>3단계. 의견 검토하기</h2>
+        <div class="guide">
+          친구의 의견을 비난하지 않습니다. 의견이 토의 주제에 맞는지, 실제로 할 수 있는지, 근거가 적절하고 믿을 만한지 살펴봅니다.
+        </div>
+        <div id="reviewList"></div>
+        <div class="btn-row">
+          <button class="secondary" onclick="renderReviews()">검토 결과 새로고침</button>
+          <button class="primary" onclick="goStep(4)">최종 선정으로 이동</button>
+        </div>
+      </section>
+
+      <section id="step4" class="card hidden">
+        <h2>4단계. 최종 의견 선정하기</h2>
+        <div class="guide">
+          검토 결과 OK가 많은 의견을 살펴보고, 우리 모둠이 실천하거나 발표할 최종 의견을 선정합니다.
+        </div>
+        <div id="finalList"></div>
+        <label>최종 선정 이유</label>
+        <textarea id="finalReason" placeholder="왜 이 의견을 최종 의견으로 선정했는지 적어 보세요."></textarea>
+        <div class="btn-row">
+          <button class="primary" onclick="goStep(5)">참여태도 평가로 이동</button>
+        </div>
+      </section>
+
+      <section id="step5" class="card hidden print-area">
+        <h2>5단계. 토의 참여태도 평가하기</h2>
+        <div class="guide no-print">
+          토의를 마친 뒤 나의 참여 태도를 스스로 평가하고, 다음 토의에서 더 잘하고 싶은 점을 적어 봅니다.
+        </div>
+        <div id="summaryBox" class="card" style="box-shadow:none;"></div>
+        <h3>나의 참여태도 점검</h3>
+        <table>
+          <thead>
+            <tr><th>평가 내용</th><th>별점</th></tr>
+          </thead>
+          <tbody id="selfEvalBody"></tbody>
+        </table>
+        <label>토의하면서 잘한 점</label>
+        <textarea id="goodPoint" placeholder="예: 친구 의견을 끝까지 들었습니다."></textarea>
+        <label>다음 토의에서 더 노력할 점</label>
+        <textarea id="nextPoint" placeholder="예: 근거를 더 자세히 말하겠습니다."></textarea>
+        <div class="btn-row no-print">
+          <button class="secondary" onclick="renderSummary()">결과 정리 새로고침</button>
+          <button class="primary" onclick="window.print()">결과 인쇄 / PDF 저장</button>
+          <button class="gray" onclick="saveData()">현재 내용 저장</button>
+          <button class="danger" onclick="resetAll()">전체 초기화</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const criteria = [
+      '토의 주제와 관련이 있는 의견인가?',
+      '실현 가능한 것인가?',
+      '근거가 의견과 관계가 있는가?',
+      '믿을 만한 근거인가?'
+    ];
+    const evalItems = [
+      '내 차례에 주제와 어울리는 의견을 말했습니다.',
+      '친구가 말할 때 끼어들지 않고 끝까지 들었습니다.',
+      '친구 의견을 OK/NO 기준에 맞게 검토했습니다.',
+      '최종 의견 선정에 적극적으로 참여했습니다.'
+    ];
+
+    let participants = [];
+    let turnIndex = 0;
+    let opinions = [];
+    let selectedOpinionId = null;
+    let recognition = null;
+    let recognizingTarget = null;
+    let selfScores = [0,0,0,0];
+
+    function $(id) { return document.getElementById(id); }
+
+    document.querySelectorAll('.step-btn').forEach(btn => {
+      btn.addEventListener('click', () => goStep(Number(btn.dataset.step)));
+    });
+
+    function goStep(step) {
+      document.querySelectorAll('main section').forEach(sec => sec.classList.add('hidden'));
+      $('step' + step).classList.remove('hidden');
+      document.querySelectorAll('.step-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx + 1 === step);
+        btn.classList.toggle('done', idx + 1 < step);
+      });
+      if (step === 2) renderOpinionListStep2();
+      if (step === 3) renderReviews();
+      if (step === 4) renderFinalList();
+      if (step === 5) { renderSummary(); renderSelfEval(); }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setParticipants() {
+      const raw = $('participantInput').value.trim();
+      participants = raw.split(',').map(v => v.trim()).filter(Boolean);
+      if (participants.length === 0) {
+        alert('참여자 이름을 입력해 주세요. 예: 민준, 서연, 지우');
+        return;
+      }
+      turnIndex = 0;
+      renderParticipants();
+      renderSpeakerSelect();
+      updateTurn();
+      saveData(false);
+    }
+
+    function renderParticipants() {
+      $('participants').innerHTML = participants.map(name => `<span class="participant-chip">${escapeHtml(name)}</span>`).join('');
+    }
+
+    function renderSpeakerSelect() {
+      const html = participants.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+      $('speaker').innerHTML = html;
+      if (participants[turnIndex]) $('speaker').value = participants[turnIndex];
+    }
+
+    function updateTurn() {
+      $('currentTurn').textContent = participants[turnIndex] || '참여자를 등록해 주세요.';
+      renderSpeakerSelect();
+    }
+
+    function nextTurn() {
+      if (participants.length === 0) return alert('먼저 참여자를 등록해 주세요.');
+      turnIndex = (turnIndex + 1) % participants.length;
+      updateTurn();
+    }
+
+    function prevTurn() {
+      if (participants.length === 0) return alert('먼저 참여자를 등록해 주세요.');
+      turnIndex = (turnIndex - 1 + participants.length) % participants.length;
+      updateTurn();
+    }
+
+    function addOpinion() {
+      const speaker = $('speaker').value;
+      const text = $('opinionText').value.trim();
+      const reason = $('reasonText').value.trim();
+      if (!speaker || !text) return alert('의견을 낸 사람과 의견을 입력해 주세요.');
+      opinions.push({
+        id: Date.now(),
+        speaker,
+        text,
+        reason,
+        checks: criteria.map(() => ({ ok: 0, no: 0 }))
+      });
+      clearOpinionForm();
+      renderOpinionListStep2();
+      saveData(false);
+      nextTurn();
+    }
+
+    function clearOpinionForm() {
+      $('opinionText').value = '';
+      $('reasonText').value = '';
+    }
+
+    function renderOpinionListStep2() {
+      if (opinions.length === 0) {
+        $('opinionListStep2').innerHTML = '<div class="guide">아직 등록된 의견이 없습니다.</div>';
+        return;
+      }
+      $('opinionListStep2').innerHTML = opinions.map((op, idx) => `
+        <div class="opinion-card">
+          <div class="opinion-title"><strong>${idx + 1}. ${escapeHtml(op.speaker)}의 의견</strong><button class="danger" onclick="deleteOpinion(${op.id})">삭제</button></div>
+          <p><b>의견:</b> ${escapeHtml(op.text)}</p>
+          <p><b>근거:</b> ${escapeHtml(op.reason || '근거가 아직 없습니다.')}</p>
+        </div>
+      `).join('');
+    }
+
+    function deleteOpinion(id) {
+      if (!confirm('이 의견을 삭제할까요?')) return;
+      opinions = opinions.filter(op => op.id !== id);
+      if (selectedOpinionId === id) selectedOpinionId = null;
+      renderOpinionListStep2();
+      saveData(false);
+    }
+
+    function renderReviews() {
+      if (opinions.length === 0) {
+        $('reviewList').innerHTML = '<div class="guide">검토할 의견이 없습니다. 먼저 의견을 등록해 주세요.</div>';
+        return;
+      }
+      $('reviewList').innerHTML = opinions.map((op, idx) => `
+        <div class="opinion-card">
+          <div class="opinion-title"><strong>${idx + 1}. ${escapeHtml(op.speaker)}의 의견</strong><span class="pill">OK ${totalOk(op)} / NO ${totalNo(op)}</span></div>
+          <p><b>의견:</b> ${escapeHtml(op.text)}</p>
+          <p><b>근거:</b> ${escapeHtml(op.reason || '근거가 아직 없습니다.')}</p>
+          <div class="check-grid check-head">
+            <div>검토 기준</div><div>OK</div><div>NO</div><div>결과</div>
+          </div>
+          ${criteria.map((c, cIdx) => `
+            <div class="check-grid">
+              <div>${c}</div>
+              <button class="ok" onclick="vote(${op.id}, ${cIdx}, 'ok')">OK</button>
+              <button class="no" onclick="vote(${op.id}, ${cIdx}, 'no')">NO</button>
+              <div class="score">${op.checks[cIdx].ok} : ${op.checks[cIdx].no}</div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    }
+
+    function vote(id, cIdx, type) {
+      const op = opinions.find(o => o.id === id);
+      if (!op) return;
+      op.checks[cIdx][type] += 1;
+      renderReviews();
+      saveData(false);
+    }
+
+    function totalOk(op) { return op.checks.reduce((sum, c) => sum + c.ok, 0); }
+    function totalNo(op) { return op.checks.reduce((sum, c) => sum + c.no, 0); }
+
+    function renderFinalList() {
+      if (opinions.length === 0) {
+        $('finalList').innerHTML = '<div class="guide">선정할 의견이 없습니다.</div>';
+        return;
+      }
+      const sorted = [...opinions].sort((a, b) => totalOk(b) - totalOk(a));
+      $('finalList').innerHTML = sorted.map((op, idx) => `
+        <div class="opinion-card ${selectedOpinionId === op.id ? 'selected' : ''}">
+          <div class="opinion-title">
+            <strong>${idx + 1}. ${escapeHtml(op.speaker)}의 의견</strong>
+            <span class="pill">OK ${totalOk(op)} / NO ${totalNo(op)}</span>
+          </div>
+          <p><b>의견:</b> ${escapeHtml(op.text)}</p>
+          <p><b>근거:</b> ${escapeHtml(op.reason || '근거가 아직 없습니다.')}</p>
+          <button class="success" onclick="selectOpinion(${op.id})">이 의견 선정하기</button>
+        </div>
+      `).join('');
+    }
+
+    function selectOpinion(id) {
+      selectedOpinionId = id;
+      renderFinalList();
+      saveData(false);
+    }
+
+    function renderSummary() {
+      const topic = $('topic').value.trim() || '토의 주제가 입력되지 않았습니다.';
+      const teamName = $('teamName').value.trim() || '모둠 이름 없음';
+      const selected = opinions.find(o => o.id === selectedOpinionId);
+      $('summaryBox').innerHTML = `
+        <h3>토의 결과 정리</h3>
+        <p><b>모둠:</b> ${escapeHtml(teamName)}</p>
+        <p><b>토의 주제:</b> ${escapeHtml(topic)}</p>
+        <p><b>참여자:</b> ${participants.map(escapeHtml).join(', ') || '참여자 없음'}</p>
+        <hr>
+        <p><b>최종 선정 의견:</b> ${selected ? escapeHtml(selected.text) : '아직 선정하지 않았습니다.'}</p>
+        <p><b>의견을 낸 사람:</b> ${selected ? escapeHtml(selected.speaker) : '-'}</p>
+        <p><b>근거:</b> ${selected ? escapeHtml(selected.reason || '근거 없음') : '-'}</p>
+        <p><b>선정 이유:</b> ${escapeHtml($('finalReason').value.trim() || '선정 이유가 입력되지 않았습니다.')}</p>
+      `;
+      saveData(false);
+    }
+
+    function renderSelfEval() {
+      $('selfEvalBody').innerHTML = evalItems.map((item, idx) => `
+        <tr>
+          <td style="text-align:left;">${item}</td>
+          <td>${[1,2,3,4,5].map(n => `<span class="star ${selfScores[idx] >= n ? 'on' : ''}" onclick="setStar(${idx}, ${n})">★</span>`).join('')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function setStar(idx, score) {
+      selfScores[idx] = score;
+      renderSelfEval();
+      saveData(false);
+    }
+
+    function toggleSpeech(targetId) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('현재 브라우저는 음성 입력을 지원하지 않습니다. 크롬 브라우저에서 실행해 주세요.');
+        return;
+      }
+      if (recognition && recognizingTarget === targetId) {
+        recognition.stop();
+        return;
+      }
+      if (recognition) recognition.stop();
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ko-KR';
+      recognition.interimResults = true;
+      recognition.continuous = true;
+      recognizingTarget = targetId;
+      setRecStatus(targetId, '녹음 중');
+      let finalText = '';
+      recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalText += transcript + ' ';
+          else interim += transcript;
+        }
+        $(targetId).value = ($(targetId).dataset.before || '') + finalText + interim;
+      };
+      recognition.onstart = () => { $(targetId).dataset.before = $(targetId).value ? $(targetId).value + ' ' : ''; };
+      recognition.onend = () => {
+        setRecStatus(targetId, '');
+        recognizingTarget = null;
+      };
+      recognition.onerror = () => {
+        alert('음성 입력 중 오류가 생겼습니다. 마이크 권한을 확인해 주세요.');
+        setRecStatus(targetId, '');
+      };
+      recognition.start();
+    }
+
+    function setRecStatus(targetId, text) {
+      if (targetId === 'opinionText') $('recStatusOpinion').textContent = text;
+      if (targetId === 'reasonText') $('recStatusReason').textContent = text;
+    }
+
+    function saveData(showAlert = true) {
+      const data = {
+        topic: $('topic').value,
+        teamName: $('teamName').value,
+        participantInput: $('participantInput').value,
+        participants,
+        turnIndex,
+        opinions,
+        selectedOpinionId,
+        finalReason: $('finalReason').value,
+        selfScores,
+        goodPoint: $('goodPoint') ? $('goodPoint').value : '',
+        nextPoint: $('nextPoint') ? $('nextPoint').value : ''
+      };
+      localStorage.setItem('roundRobinDiscussionData', JSON.stringify(data));
+      if (showAlert) alert('현재 내용이 이 기기에 저장되었습니다.');
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem('roundRobinDiscussionData');
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        $('topic').value = data.topic || '';
+        $('teamName').value = data.teamName || '';
+        $('participantInput').value = data.participantInput || '';
+        participants = data.participants || [];
+        turnIndex = data.turnIndex || 0;
+        opinions = data.opinions || [];
+        selectedOpinionId = data.selectedOpinionId || null;
+        $('finalReason').value = data.finalReason || '';
+        selfScores = data.selfScores || [0,0,0,0];
+        if ($('goodPoint')) $('goodPoint').value = data.goodPoint || '';
+        if ($('nextPoint')) $('nextPoint').value = data.nextPoint || '';
+        renderParticipants();
+        renderSpeakerSelect();
+        updateTurn();
+      } catch (e) {
+        console.warn('저장된 데이터를 불러오지 못했습니다.', e);
+      }
+    }
+
+    function resetAll() {
+      if (!confirm('모든 내용을 지울까요?')) return;
+      localStorage.removeItem('roundRobinDiscussionData');
+      location.reload();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    loadData();
+    renderSelfEval();
+  </script>
+</body>
+</html>
