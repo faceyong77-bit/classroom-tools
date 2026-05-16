@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>국가유산 이론 모둠 학습지</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, #ffe29f 0%, transparent 20%),
+        radial-gradient(circle at top right, #ffd6e7 0%, transparent 20%),
+        radial-gradient(circle at bottom left, #c8f7ff 0%, transparent 20%),
+        linear-gradient(135deg, #fff8d9 0%, #dff6ff 50%, #f4e7ff 100%);
+      color: #243047;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '⭐ 🏛️ 🌿 📜 ⭐ 🌈 🧭';
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 26px;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+      letter-spacing: 18px;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px; }
+    header, .section, .result {
+      background: rgba(255,255,255,.97);
+      border: 4px solid #243047;
+      border-radius: 30px;
+      padding: 22px;
+      margin: 22px 0;
+      box-shadow: 0 10px 0 rgba(36,48,71,.85);
+      position: relative;
+      z-index: 1;
+    }
+    header { border-width: 4px; box-shadow: 8px 8px 0 #243047; }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 38px;
+      color: #ff6b6b;
+      text-shadow: 2px 2px 0 #ffffff;
+    }
+    h2 { margin: 0 0 14px; font-size: 25px; display: flex; align-items: center; gap: 10px; }
+    h3 { margin: 0 0 8px; }
+    .subtitle { font-size: 18px; line-height: 1.6; }
+     .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffb703, #ff6b6b);
+      color: white;
+      font-weight: 900;
+      border: 3px solid #243047;
+      transform: rotate(-5deg);
+    }
+    .info-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 18px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    label { font-weight: 900; display: block; margin-bottom: 6px; }
+    input, textarea, select {
+      width: 100%; border: 2px solid #243047; border-radius: 14px; padding: 12px; font-size: 16px; background: #fff;
+    }
+    textarea { min-height: 90px; resize: vertical; line-height: 1.55; }
+    .notice { background: #fff3bf; border: 2px solid #243047; border-radius: 16px; padding: 13px; line-height: 1.6; }
+    .activity-box { border: 2px dashed #657089; border-radius: 18px; padding: 16px; background: #f8fbff; margin-top: 12px; }
+    .card, .value-card, .heritage-card {
+      border: 2px solid #243047; border-radius: 18px; padding: 15px; background: #fffdf5;
+    }
+    .small { font-size: 14px; color: #4b5872; line-height: 1.5; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; border: 2px solid #243047; font-weight: 800; background: #fff; margin: 4px 4px 4px 0; }
+    .choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    button {
+      border: 3px solid #243047;
+      border-radius: 18px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #ffffff, #fff5c4);
+      font-weight: 900;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 5px 0 #243047;
+      transition: all .15s ease;
+    }
+    button:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+    button.selected { background: #ffe066; }
+     .primary {
+      background: linear-gradient(135deg, #4facfe, #00c6ff);
+      color: white;
+    }
+     .danger {
+      background: linear-gradient(135deg, #ff9a9e, #ff6b6b);
+      color: white;
+    }
+     .type-btn.selected {
+      background: linear-gradient(135deg, #8ec5fc, #bde0fe);
+    }
+     .recording {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b) !important;
+      color: white;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .checkline { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0; line-height: 1.5; }
+    .checkline input { width: 22px; height: 22px; flex: 0 0 auto; margin-top: 2px; }
+    .report-title { text-align: center; font-size: 28px; margin: 0 0 18px; }
+    .report-row { border-bottom: 1px solid #cfd6e4; padding: 10px 0; line-height: 1.7; }
+    .report-row strong { display: inline-block; min-width: 130px; }
+    .hidden { display: none; }
+    .savebar { position: sticky; bottom: 0; background: rgba(255,255,255,.96); border-top: 3px solid #243047; padding: 14px; display: flex; gap: 10px; justify-content: center; z-index: 10; flex-wrap: wrap; }
+    .heritage-card { margin-top: 14px; background: #ffffff; }
+    .heritage-card-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:12px; }
+    .mini-title { font-weight: 900; font-size: 18px; }
+    .audio-list audio { width: 100%; margin-top: 8px; }
+    .voice-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+    @media (max-width: 900px) {
+      .info-grid, .two-col, .three-col, .four-col { grid-template-columns: 1fr; }
+      .wrap { padding: 14px; }
+      h1 { font-size: 27px; }
+    }
+    @media print {
+      body { background: white; }
+      header, .section, .result { box-shadow: none; }
+      .savebar, .no-print, .voice-row, audio { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🏛️ 국가유산 이론 모둠 학습지</h1>
+      <div class="subtitle">
+        국가유산의 뜻과 유형, 국가유산이 될 수 있는 조건을 알아보고<br>
+        여러 유산을 <strong>역사적·과학적·심미적·생태환경적 측면</strong>에서 살펴봅시다.
+      </div>
+      <div class="info-grid">
+        <div><label>학교</label><input id="school" placeholder="예: 좌산초"></div>
+        <div><label>학년 반</label><input id="className" placeholder="예: 4학년 1반"></div>
+        <div><label>모둠명</label><input id="groupName" placeholder="예: 국가유산 탐험대"></div>
+        <div><label>모둠원</label><input id="members" placeholder="예: 김○○, 이○○"></div>
+        <div><label>날짜</label><input id="date" type="date"></div>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2><span class="badge">1</span> 국가유산이란 무엇일까요?</h2>
+      <div class="notice"><strong>국가유산</strong>은 우리나라의 역사, 문화, 자연을 이해하는 데 중요한 가치가 있어 보호하고 미래 세대에게 전해 가야 할 소중한 유산입니다.</div>
+      <div class="activity-box">
+        <label>모둠에서 생각한 국가유산의 뜻을 한 문장으로 정리해 봅시다.</label>
+        <textarea id="meaning" placeholder="예: 국가유산은 우리나라의 역사와 자연의 가치를 보여 주어 미래 세대에게 전해야 할 소중한 것이다."></textarea>
+        <div class="voice-row no-print">
+          <button onclick="toggleRecording('meaning')" id="rec-meaning" title="녹음 시작">🎤</button>
+          <span class="small">말로 먼저 이야기한 뒤, 핵심 낱말만 적어도 됩니다.</span>
+        </div>
+        <div id="audio-meaning" class="audio-list"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span class="badge">2</span> 국가유산의 유형 알아보기</h2>
+      <div class="three-col">
+        <div class="card"><h3>문화유산</h3><p>사람들이 남긴 건축물, 유적, 기록, 물건처럼 역사와 문화를 보여 주는 유산</p><span class="pill">궁궐</span><span class="pill">탑</span><span class="pill">유적</span><span class="pill">기록물</span></div>
+        <div class="card"><h3>무형유산</h3><p>기술, 예술, 놀이, 의식처럼 사람들의 몸과 마음으로 이어져 온 유산</p><span class="pill">탈춤</span><span class="pill">판소리</span><span class="pill">공예기술</span><span class="pill">민속놀이</span></div>
+        <div class="card"><h3>자연유산</h3><p>동물, 식물, 지형, 경관처럼 자연이 오랜 시간 만들어 낸 소중한 유산</p><span class="pill">천연기념물</span><span class="pill">동굴</span><span class="pill">숲</span><span class="pill">섬</span></div>
+      </div>
+      <div class="activity-box">
+        <label>여러 유산을 하나씩 골라 유형을 선택해 봅시다.</label>
+        <div class="two-col">
+          <div>
+            <label>유산 예시</label>
+            <select id="heritageExample"></select>
+          </div>
+          <div>
+            <label>내가 고른 유형</label>
+            <div class="choices">
+              <button class="type-btn" onclick="chooseType(this,'문화유산')">문화유산</button>
+              <button class="type-btn" onclick="chooseType(this,'무형유산')">무형유산</button>
+              <button class="type-btn" onclick="chooseType(this,'자연유산')">자연유산</button>
+            </div>
+          </div>
+        </div>
+        <div id="typeFeedback" class="small"></div>
+        <div class="choices no-print">
+          <button class="primary" onclick="saveTypeAnswer()">이 유산 기록하기</button>
+          <button onclick="nextHeritageExample()">다른 유산 선택하기</button>
+        </div>
+        <div id="typeLog" class="activity-box"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span class="badge">3</span> 국가유산이 될 수 있는 조건 생각하기</h2>
+      <p>국가유산은 단순히 오래되었기 때문만이 아니라, 사람들이 함께 보호하고 미래로 전할 만한 가치가 있어야 합니다.</p>
+      <div class="activity-box">
+        <label>다음 질문에 “예”라고 답할 수 있다면 국가유산으로 살펴볼 가치가 있습니다.</label>
+        <div class="checkline"><input type="checkbox" id="c1"> <span>이 유산은 과거 사람들의 삶, 사건, 변화, 기억을 알려 주나요?</span></div>
+        <div class="checkline"><input type="checkbox" id="c2"> <span>이 유산은 뛰어난 기술, 지식, 자연의 원리, 탐구할 점을 보여 주나요?</span></div>
+        <div class="checkline"><input type="checkbox" id="c3"> <span>이 유산은 아름다움, 예술성, 독창적인 표현을 느끼게 하나요?</span></div>
+        <div class="checkline"><input type="checkbox" id="c4"> <span>이 유산은 자연환경, 생명, 생태계 보전의 가치를 알려 주나요?</span></div>
+        <div class="checkline"><input type="checkbox" id="c5"> <span>이 유산은 사람들이 함께 보호하고 미래 세대에게 전할 필요가 있나요?</span></div>
+        <button onclick="checkConditions()">조건 확인하기</button>
+        <div id="conditionFeedback" class="small"></div>
+      </div>
+      <div class="four-col" style="margin-top:14px;">
+        <div class="value-card"><h3>역사적 측면</h3><p class="small">과거 사람들의 삶, 사건, 변화, 기억을 보여 주는가?</p></div>
+        <div class="value-card"><h3>과학적 측면</h3><p class="small">뛰어난 기술, 지식, 자연의 원리, 탐구할 점이 있는가?</p></div>
+        <div class="value-card"><h3>심미적 측면</h3><p class="small">아름다움, 예술성, 독창적인 표현이 느껴지는가?</p></div>
+        <div class="value-card"><h3>생태환경적 측면</h3><p class="small">자연환경, 생명, 생태계 보전의 가치가 있는가?</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span class="badge">4</span> 네 가지 가치의 눈으로 여러 유산 살펴보기</h2>
+      <div class="notice">모둠에서 유산을 하나씩 정해 살펴보고, <strong>유산 추가하기</strong> 버튼을 눌러 여러 유산을 비교해 봅시다.</div>
+      <div id="heritageCards"></div>
+      <div class="choices no-print">
+        <button class="primary" onclick="addHeritageCard()">+ 유산 추가하기</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span class="badge">5</span> 오늘 배운 내용 정리하기</h2>
+      <div class="two-col">
+        <div>
+          <label>오늘 새롭게 알게 된 점</label>
+          <textarea id="learned" placeholder="예: 국가유산은 유형뿐 아니라 여러 가치의 눈으로 살펴보아야 한다는 것을 알게 되었다."></textarea>
+          <div class="voice-row no-print"><button onclick="toggleRecording('learned')" id="rec-learned" title="녹음 시작">🎤</button></div>
+          <div id="audio-learned" class="audio-list"></div>
+        </div>
+        <div>
+          <label>앞으로 국가유산을 볼 때 살펴볼 점</label>
+          <textarea id="promise" placeholder="예: 오래되었는지만 보지 않고 역사적, 과학적, 심미적, 생태환경적 가치를 함께 살펴보겠다."></textarea>
+          <div class="voice-row no-print"><button onclick="toggleRecording('promise')" id="rec-promise" title="녹음 시작">🎤</button></div>
+          <div id="audio-promise" class="audio-list"></div>
+        </div>
+      </div>
+      <div class="activity-box">
+        <label>모둠 활동을 돌아봅시다.</label>
+        <div class="checkline"><input type="checkbox" id="s1"> <span>우리 모둠은 국가유산의 뜻을 함께 설명할 수 있다.</span></div>
+        <div class="checkline"><input type="checkbox" id="s2"> <span>우리 모둠은 여러 유산의 유형을 구분해 보았다.</span></div>
+        <div class="checkline"><input type="checkbox" id="s3"> <span>우리 모둠은 네 가지 가치의 눈으로 유산을 살펴보았다.</span></div>
+      </div>
+      <button class="primary" onclick="makeReport()">보고서 만들기</button>
+    </section>
+
+    <section id="report" class="result hidden">
+      <h2 class="report-title">국가유산 이론 모둠 학습 보고서</h2>
+      <div id="reportContent"></div>
+    </section>
+  </div>
+
+  <div class="savebar no-print">
+    <button onclick="makeReport()">보고서 만들기</button>
+    <button class="primary" onclick="savePDF()">PDF로 저장</button>
+    <button onclick="saveJPG()">JPG로 저장</button>
+    <button class="danger" onclick="resetAll()">처음부터 다시</button>
+  </div>
+
+  <script>
+    const examples = [
+      ['불국사', '문화유산'], ['판소리', '무형유산'], ['제주 화산섬과 용암동굴', '자연유산'], ['훈민정음 해례본', '문화유산'],
+      ['강강술래', '무형유산'], ['독도 천연보호구역', '자연유산'], ['석굴암', '문화유산'], ['김장문화', '무형유산'],
+      ['설악산 천연보호구역', '자연유산'], ['종묘', '문화유산'], ['한산모시짜기', '무형유산'], ['대암산 용늪', '자연유산']
+    ];
+    let selectedType = '';
+    let typeRecords = [];
+    let heritageCardCount = 0;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let currentRecordTarget = null;
+
+    document.getElementById('date').valueAsDate = new Date();
+    initExamples();
+    addHeritageCard();
+
+    function initExamples() {
+      const sel = document.getElementById('heritageExample');
+      sel.innerHTML = examples.map(e => `<option value="${e[0]}">${e[0]}</option>`).join('');
+      sel.onchange = resetTypeChoice;
+    }
+
+    function chooseType(btn, type) {
+      selectedType = type;
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const example = document.getElementById('heritageExample').value;
+      const correct = examples.find(e => e[0] === example)[1];
+      const feedback = document.getElementById('typeFeedback');
+      feedback.innerHTML = type === correct
+        ? `✅ 맞아요! <strong>${example}</strong>은/는 <strong>${correct}</strong>입니다.`
+        : `💡 다시 생각해 봅시다. <strong>${example}</strong>은/는 어떤 모습으로 전해지는 유산일까요?`;
+    }
+
+    function resetTypeChoice() {
+      selectedType = '';
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('typeFeedback').innerHTML = '';
+    }
+
+    function nextHeritageExample() {
+      const sel = document.getElementById('heritageExample');
+      sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
+      resetTypeChoice();
+    }
+
+    function saveTypeAnswer() {
+      const example = document.getElementById('heritageExample').value;
+      if (!selectedType) { alert('유형을 먼저 선택해 주세요.'); return; }
+      const correct = examples.find(e => e[0] === example)[1];
+      typeRecords.push({ example, selectedType, correct, ok: selectedType === correct });
+      renderTypeLog();
+      nextHeritageExample();
+    }
+
+    function renderTypeLog() {
+      const log = document.getElementById('typeLog');
+      if (!typeRecords.length) { log.innerHTML = '<span class="small">아직 기록한 유산이 없습니다.</span>'; return; }
+      log.innerHTML = '<strong>우리 모둠이 분류한 유산</strong>' + typeRecords.map((r, i) =>
+        `<div class="report-row">${i+1}. ${r.example} → ${r.selectedType} ${r.ok ? '✅' : `💡 정답: ${r.correct}`}</div>`
+      ).join('');
+    }
+
+    function checkConditions() {
+      const checks = ['c1','c2','c3','c4','c5'].map(id => document.getElementById(id).checked);
+      const count = checks.filter(Boolean).length;
+      const fb = document.getElementById('conditionFeedback');
+      if (count >= 3 && checks[4]) fb.innerHTML = '✅ 좋아요! 여러 가치의 눈으로 살펴보고, 미래 세대에게 전할 필요가 있는지 생각했습니다.';
+      else if (count >= 3) fb.innerHTML = '💡 여러 가치가 보입니다. 여기에 미래 세대에게 전할 필요가 있는지도 함께 생각해 봅시다.';
+      else fb.innerHTML = '💡 한 가지 기준만으로 판단하기보다 역사적·과학적·심미적·생태환경적 측면을 함께 살펴봅시다.';
+    }
+
+    function addHeritageCard() {
+      heritageCardCount++;
+      const id = heritageCardCount;
+      const box = document.createElement('div');
+      box.className = 'heritage-card';
+      box.id = `heritage-card-${id}`;
+      box.innerHTML = `
+        <div class="heritage-card-head">
+          <div class="mini-title">유산 ${id}</div>
+          <button class="no-print" onclick="removeHeritageCard(${id})">삭제</button>
+        </div>
+        <div class="two-col">
+          <div><label>살펴볼 유산 이름</label><input id="targetHeritage-${id}" placeholder="예: 불국사, 장산, 좌동 구석기 유적비"></div>
+          <div><label>유산 유형</label><select id="targetType-${id}"><option>문화유산</option><option>무형유산</option><option>자연유산</option><option>좌동의 유산</option></select></div>
+        </div>
+        <div class="four-col" style="margin-top:14px;">
+          <div class="value-card"><h3>역사적 측면</h3><textarea id="historyValue-${id}" placeholder="어떤 역사나 기억을 알려 주나요?"></textarea><div class="voice-row no-print"><button id="rec-historyValue-${id}" onclick="toggleRecording('historyValue-${id}')">🎤</button></div><div id="audio-historyValue-${id}" class="audio-list"></div></div>
+          <div class="value-card"><h3>과학적 측면</h3><textarea id="scienceValue-${id}" placeholder="기술, 지식, 자연의 원리와 관련된 점은 무엇인가요?"></textarea><div class="voice-row no-print"><button id="rec-scienceValue-${id}" onclick="toggleRecording('scienceValue-${id}')">🎙️ 녹음</button></div><div id="audio-scienceValue-${id}" class="audio-list"></div></div>
+          <div class="value-card"><h3>심미적 측면</h3><textarea id="beautyValue-${id}" placeholder="모양, 색, 소리, 표현에서 어떤 아름다움이 있나요?"></textarea><div class="voice-row no-print"><button id="rec-beautyValue-${id}" onclick="toggleRecording('beautyValue-${id}')">🎙️ 녹음</button></div><div id="audio-beautyValue-${id}" class="audio-list"></div></div>
+          <div class="value-card"><h3>생태환경적 측면</h3><textarea id="ecoValue-${id}" placeholder="자연, 생명, 환경과 관련한 가치는 무엇인가요?"></textarea><div class="voice-row no-print"><button id="rec-ecoValue-${id}" onclick="toggleRecording('ecoValue-${id}')">🎙️ 녹음</button></div><div id="audio-ecoValue-${id}" class="audio-list"></div></div>
+        </div>
+      `;
+      document.getElementById('heritageCards').appendChild(box);
+    }
+
+    function removeHeritageCard(id) {
+      const card = document.getElementById(`heritage-card-${id}`);
+      if (card) card.remove();
+    }
+
+    async function toggleRecording(targetId) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('이 브라우저에서는 녹음 기능을 사용할 수 없습니다. 크롬 또는 엣지에서 실행해 주세요.');
+        return;
+      }
+      const btn = document.getElementById('rec-' + targetId);
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        if (btn) {
+          btn.classList.remove('recording');
+          btn.textContent = '🎤';
+        }
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        currentRecordTarget = targetId;
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audioBox = document.getElementById('audio-' + currentRecordTarget);
+          if (audioBox) {
+            audioBox.innerHTML = `<audio controls src="${audioUrl}"></audio><div class="small">녹음 내용을 듣고 핵심 낱말을 글로 정리해 보세요.</div>`;
+          }
+          stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorder.start();
+        if (btn) {
+          btn.classList.add('recording');
+          btn.textContent = '⏹️';
+        }
+      } catch (err) {
+        alert('마이크 권한이 필요합니다. 주소창 왼쪽의 권한 설정에서 마이크를 허용해 주세요.');
+      }
+    }
+
+    function val(id) { const el = document.getElementById(id); return el && el.value ? el.value : '아직 작성하지 않음'; }
+    function checkText(id) { return document.getElementById(id).checked ? '예' : '아니오'; }
+
+    function collectHeritageReports() {
+      const cards = document.querySelectorAll('.heritage-card');
+      let html = '';
+      cards.forEach((card, idx) => {
+        const id = card.id.replace('heritage-card-', '');
+        html += `
+          <div class="report-row"><strong>유산 ${idx+1}</strong>${val('targetHeritage-' + id)} / ${val('targetType-' + id)}</div>
+          <div class="report-row"><strong>역사적 측면</strong>${val('historyValue-' + id)}</div>
+          <div class="report-row"><strong>과학적 측면</strong>${val('scienceValue-' + id)}</div>
+          <div class="report-row"><strong>심미적 측면</strong>${val('beautyValue-' + id)}</div>
+          <div class="report-row"><strong>생태환경적 측면</strong>${val('ecoValue-' + id)}</div>`;
+      });
+      return html || '<div class="report-row">아직 살펴본 유산이 없습니다.</div>';
+    }
+
+    function makeReport() {
+      const report = document.getElementById('report');
+      const content = document.getElementById('reportContent');
+      const typeHtml = typeRecords.length ? typeRecords.map((r, i) => `${i+1}. ${r.example} → ${r.selectedType} ${r.ok ? '✅' : `(정답: ${r.correct})`}`).join('<br>') : '아직 기록하지 않음';
+      content.innerHTML = `
+        <div class="report-row"><strong>학교</strong>${val('school')}</div>
+        <div class="report-row"><strong>학년 반</strong>${val('className')}</div>
+        <div class="report-row"><strong>모둠명</strong>${val('groupName')}</div>
+        <div class="report-row"><strong>모둠원</strong>${val('members')}</div>
+        <div class="report-row"><strong>날짜</strong>${val('date')}</div>
+        <div class="report-row"><strong>국가유산의 뜻</strong>${val('meaning')}</div>
+        <div class="report-row"><strong>유형 분류</strong>${typeHtml}</div>
+        ${collectHeritageReports()}
+        <div class="report-row"><strong>알게 된 점</strong>${val('learned')}</div>
+        <div class="report-row"><strong>앞으로 볼 점</strong>${val('promise')}</div>
+        <div class="report-row"><strong>모둠 평가</strong>뜻 설명: ${checkText('s1')} / 유형 구분: ${checkText('s2')} / 네 가지 가치로 살펴보기: ${checkText('s3')}</div>
+      `;
+      report.classList.remove('hidden');
+      report.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function savePDF() {
+      makeReport();
+      const report = document.getElementById('report');
+      const canvas = await html2canvas(report, { scale: 2, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210, pageHeight = 297, imgWidth = pageWidth - 20;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      let heightLeft = imgHeight, position = 10;
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + 10;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      const name = (document.getElementById('groupName').value || '모둠') + '_국가유산_이론학습지.pdf';
+      pdf.save(name);
+    }
+
+    async function saveJPG() {
+      makeReport();
+      const report = document.getElementById('report');
+      const canvas = await html2canvas(report, { scale: 2, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = (document.getElementById('groupName').value || '모둠') + '_국가유산_이론학습지.jpg';
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function resetAll() {
+      if (!confirm('작성한 내용을 모두 지우고 처음부터 다시 시작할까요?')) return;
+      location.reload();
+    }
+  </script>
+</body>
+</html>
