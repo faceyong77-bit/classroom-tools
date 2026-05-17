@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>모둠 질문 나침반 활동</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef9c3 50%, #dcfce7 100%);
+      color: #1f2937;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 3px solid #38bdf8;
+      padding: 14px 18px;
+    }
+    .topbar {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0;
+      font-family: 'Jua', sans-serif;
+      font-size: 32px;
+      color: #0369a1;
+    }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 11px 16px;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+      background: #0ea5e9;
+      color: white;
+      box-shadow: 0 4px 0 #0369a1;
+    }
+    button:active { transform: translateY(3px); box-shadow: 0 1px 0 #0369a1; }
+    button.secondary { background: #22c55e; box-shadow: 0 4px 0 #15803d; }
+    button.warn { background: #f97316; box-shadow: 0 4px 0 #c2410c; }
+    button.gray { background: #64748b; box-shadow: 0 4px 0 #334155; }
+    button.mic {
+      min-width: 46px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #8b5cf6;
+      box-shadow: 0 4px 0 #6d28d9;
+    }
+    button.mic.recording {
+      background: #ef4444;
+      box-shadow: 0 4px 0 #991b1b;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 50% { transform: scale(1.05); } }
+    main { max-width: 1120px; margin: 22px auto 90px; padding: 0 16px; }
+    .card {
+      background: white;
+      border: 3px solid #111827;
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 8px 8px 0 rgba(15,23,42,.18);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 12px;
+      font-family: 'Jua', sans-serif;
+      font-size: 28px;
+      color: #111827;
+    }
+    .badge {
+      background: #fde047;
+      border: 2px solid #111827;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 18px;
+    }
+    .guide {
+      background: #f0f9ff;
+      border: 2px dashed #38bdf8;
+      border-radius: 18px;
+      padding: 12px 14px;
+      margin: 10px 0 16px;
+      font-weight: 700;
+      line-height: 1.65;
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    label { font-weight: 900; display: block; margin: 8px 0 6px; }
+    input, textarea {
+      width: 100%;
+      border: 2px solid #334155;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      background: #fff;
+    }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.55; }
+    .field-with-mic {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+    .small { font-size: 14px; color: #475569; font-weight: 700; }
+    .keyword-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 8px 12px;
+      border: 2px solid #111827;
+      border-radius: 999px;
+      background: #fef3c7;
+      font-weight: 900;
+      font-size: 18px;
+      text-align: center;
+    }
+    .compass-wrap {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .qbox {
+      background: #f8fafc;
+      border: 2px solid #111827;
+      border-radius: 20px;
+      padding: 14px;
+    }
+    .qbox h3 {
+      margin: 0 0 10px;
+      font-family: 'Jua', sans-serif;
+      font-size: 23px;
+      color: #0f172a;
+    }
+    .question-card {
+      background: #fff7ed;
+      border: 2px solid #fb923c;
+      border-radius: 18px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .answer-row { display: grid; grid-template-columns: 100px 1fr; gap: 10px; margin: 8px 0; align-items: start; }
+    .fixed-save {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,.96);
+      border-top: 3px solid #111827;
+      padding: 10px 16px;
+      z-index: 20;
+    }
+    .fixed-inner { max-width: 1120px; margin: 0 auto; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .stars { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .star {
+      font-size: 34px;
+      cursor: pointer;
+      color: white;
+      text-shadow: -2px -2px 0 #111827, 2px -2px 0 #111827, -2px 2px 0 #111827, 2px 2px 0 #111827;
+      user-select: none;
+    }
+    .star.on { color: #facc15; }
+    .member-eval {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px;
+      align-items: center;
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+    #reportArea {
+      background: white;
+      border: 3px solid #111827;
+      border-radius: 24px;
+      padding: 22px;
+      margin-top: 20px;
+      display: none;
+    }
+    .report-title { font-family:'Jua', sans-serif; font-size:30px; text-align:center; margin:0 0 16px; }
+    .report-box { border:2px solid #111827; border-radius:14px; padding:12px; margin:10px 0; white-space:pre-wrap; }
+    .print-only { display:none; }
+    @media (max-width: 820px) {
+      .grid2, .grid4, .compass-wrap { grid-template-columns: 1fr; }
+      .answer-row, .member-eval { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background:white; }
+      header, .fixed-save, .no-print, button.mic { display:none !important; }
+      main { margin:0; max-width:none; }
+      .card, #reportArea { box-shadow:none; page-break-inside:avoid; }
+      .print-only { display:block; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <h1>🧭 모둠 질문 나침반</h1>
+      <div class="btns">
+        <button onclick="makeReport()">보고서 만들기</button>
+        <button class="secondary" onclick="saveImage()">이미지로 저장</button>
+        <button class="gray" onclick="window.print()">PDF로 저장</button>
+        <button class="warn" onclick="resetAll()">처음부터 다시</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2 class="section-title"><span class="badge">준비</span> 오늘의 활동 정보</h2>
+      <div class="guide">모든 입력 칸 옆의 🎤 버튼을 누르면 말로 입력할 수 있습니다. 녹음이 되지 않는 기기에서는 직접 입력하세요.</div>
+      <div class="grid2">
+        <div>
+          <label>단원</label>
+          <div class="field-with-mic"><input id="unit" placeholder="예: 3. 경제활동과 지역 간 교류" /><button class="mic" onclick="voiceTo('unit', this)">🎤</button></div>
+        </div>
+        <div>
+          <label>학습 주제</label>
+          <div class="field-with-mic"><input id="topic" placeholder="예: 합리적인 선택이 필요한 까닭 알기" /><button class="mic" onclick="voiceTo('topic', this)">🎤</button></div>
+        </div>
+        <div>
+          <label>모둠 이름</label>
+          <div class="field-with-mic"><input id="groupName" placeholder="예: 반짝 질문 모둠" /><button class="mic" onclick="voiceTo('groupName', this)">🎤</button></div>
+        </div>
+        <div>
+          <label>모둠원</label>
+          <div class="field-with-mic"><input id="members" placeholder="예: 김○○, 이○○, 박○○, 최○○" oninput="makeMemberEval()" /><button class="mic" onclick="voiceTo('members', this, makeMemberEval)">🎤</button></div>
+          <div class="small">쉼표로 이름을 나누어 쓰면 활동 4에 개인별 평가 칸이 만들어집니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title"><span class="badge">활동 1</span> 돌아가며 말하기로 핵심 키워드 정하기</h2>
+      <div class="guide">한 사람씩 돌아가며 오늘 학습과 관련된 중요한 낱말을 말합니다. 모둠에서 꼭 필요하다고 생각하는 핵심 키워드 4개를 고릅니다.</div>
+      <div class="grid4">
+        <div><label>키워드 1</label><div class="field-with-mic"><input id="kw1" placeholder="예: 선택" oninput="syncKeywords()" /><button class="mic" onclick="voiceTo('kw1', this, syncKeywords)">🎤</button></div></div>
+        <div><label>키워드 2</label><div class="field-with-mic"><input id="kw2" placeholder="예: 기준" oninput="syncKeywords()" /><button class="mic" onclick="voiceTo('kw2', this, syncKeywords)">🎤</button></div></div>
+        <div><label>키워드 3</label><div class="field-with-mic"><input id="kw3" placeholder="예: 이유" oninput="syncKeywords()" /><button class="mic" onclick="voiceTo('kw3', this, syncKeywords)">🎤</button></div></div>
+        <div><label>키워드 4</label><div class="field-with-mic"><input id="kw4" placeholder="예: 결과" oninput="syncKeywords()" /><button class="mic" onclick="voiceTo('kw4', this, syncKeywords)">🎤</button></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title"><span class="badge">활동 2</span> 핵심 키워드로 학습 질문 만들기</h2>
+      <div class="guide">활동 1에서 정한 키워드가 자동으로 들어옵니다. 각 키워드와 관련된 학습 질문을 만들어 봅시다.</div>
+      <div class="compass-wrap">
+        <div class="qbox">
+          <h3>질문 1 <span class="keyword-pill" id="showKw1">키워드 1</span></h3>
+          <div class="field-with-mic"><textarea id="q1" placeholder="예: 왜 선택할 때 기준이 필요할까요?"></textarea><button class="mic" onclick="voiceTo('q1', this)">🎤</button></div>
+        </div>
+        <div class="qbox">
+          <h3>질문 2 <span class="keyword-pill" id="showKw2">키워드 2</span></h3>
+          <div class="field-with-mic"><textarea id="q2" placeholder="예: 좋은 기준은 어떻게 정할 수 있을까요?"></textarea><button class="mic" onclick="voiceTo('q2', this)">🎤</button></div>
+        </div>
+        <div class="qbox">
+          <h3>질문 3 <span class="keyword-pill" id="showKw3">키워드 3</span></h3>
+          <div class="field-with-mic"><textarea id="q3" placeholder="예: 선택의 이유를 생각하면 무엇이 좋을까요?"></textarea><button class="mic" onclick="voiceTo('q3', this)">🎤</button></div>
+        </div>
+        <div class="qbox">
+          <h3>질문 4 <span class="keyword-pill" id="showKw4">키워드 4</span></h3>
+          <div class="field-with-mic"><textarea id="q4" placeholder="예: 선택의 결과는 누구에게 영향을 줄까요?"></textarea><button class="mic" onclick="voiceTo('q4', this)">🎤</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title"><span class="badge">활동 3</span> 돌아가며 답 찾기 · 탐험을 마치며</h2>
+      <div class="guide">질문을 하나씩 읽고, 돌아가며 말하기로 답을 찾아봅니다. 마지막에는 오늘 학습 주제를 설명하는 한두 문장을 만듭니다.</div>
+      <div class="question-card"><b>질문 1 답 찾기</b><div class="answer-row"><span id="readQ1">질문 1</span><div class="field-with-mic"><textarea id="a1"></textarea><button class="mic" onclick="voiceTo('a1', this)">🎤</button></div></div></div>
+      <div class="question-card"><b>질문 2 답 찾기</b><div class="answer-row"><span id="readQ2">질문 2</span><div class="field-with-mic"><textarea id="a2"></textarea><button class="mic" onclick="voiceTo('a2', this)">🎤</button></div></div></div>
+      <div class="question-card"><b>질문 3 답 찾기</b><div class="answer-row"><span id="readQ3">질문 3</span><div class="field-with-mic"><textarea id="a3"></textarea><button class="mic" onclick="voiceTo('a3', this)">🎤</button></div></div></div>
+      <div class="question-card"><b>질문 4 답 찾기</b><div class="answer-row"><span id="readQ4">질문 4</span><div class="field-with-mic"><textarea id="a4"></textarea><button class="mic" onclick="voiceTo('a4', this)">🎤</button></div></div></div>
+      <label>탐험을 마치며: 오늘 학습 주제 정리 문장</label>
+      <div class="field-with-mic"><textarea id="summary" placeholder="예: 합리적인 선택을 하려면 선택 기준을 세우고, 선택의 이유와 결과를 함께 생각해야 한다."></textarea><button class="mic" onclick="voiceTo('summary', this)">🎤</button></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title"><span class="badge">활동 4</span> 생활 질문 · 생활 약속 · 개인별 참여도 평가</h2>
+      <div class="guide">오늘 배운 내용을 내 생활과 연결해 질문을 만들고, 다음에 실천할 약속을 정합니다. 모둠원 각자가 참여도를 평가합니다.</div>
+      <label>생활 질문</label>
+      <div class="field-with-mic"><textarea id="lifeQuestion" placeholder="예: 나는 물건을 살 때 정말 필요한지 먼저 생각하고 있을까?"></textarea><button class="mic" onclick="voiceTo('lifeQuestion', this)">🎤</button></div>
+      <label>생활 약속</label>
+      <div class="field-with-mic"><textarea id="lifePromise" placeholder="예: 다음 선택을 할 때 이유와 결과를 한 번 더 생각하겠습니다."></textarea><button class="mic" onclick="voiceTo('lifePromise', this)">🎤</button></div>
+      <label>모둠원 개인별 참여도 평가</label>
+      <div id="memberEvalBox"></div>
+      <div class="small">모둠원 이름을 입력하지 않으면 4명 기준 평가 칸이 표시됩니다.</div>
+      <label>모둠 활동 돌아보기</label>
+      <div class="field-with-mic"><textarea id="reflection" placeholder="우리 모둠이 잘한 점과 다음에 더 노력할 점을 적어 봅시다."></textarea><button class="mic" onclick="voiceTo('reflection', this)">🎤</button></div>
+    </section>
+
+    <section id="reportArea">
+      <h2 class="report-title">🧭 모둠 질문 나침반 활동 보고서</h2>
+      <div id="reportContent"></div>
+    </section>
+  </main>
+
+  <div class="fixed-save no-print">
+    <div class="fixed-inner">
+      <button onclick="makeReport()">보고서 만들기</button>
+      <button class="secondary" onclick="saveImage()">이미지로 저장</button>
+      <button class="gray" onclick="window.print()">PDF로 저장</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    let activeRecognition = null;
+    let activeButton = null;
+
+    function val(id) { return $(id).value.trim() || ' '; }
+
+    function appendText(el, text) {
+      const clean = text.trim();
+      if (!clean) return;
+      if (el.value.trim()) el.value += (el.tagName === 'TEXTAREA' ? '\n' : ' ') + clean;
+      else el.value = clean;
+      el.dispatchEvent(new Event('input'));
+    }
+
+    function voiceTo(id, btn, callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('이 브라우저에서는 음성 입력을 지원하지 않습니다. 크롬 브라우저를 사용해 주세요.');
+        return;
+      }
+      if (activeRecognition) {
+        activeRecognition.stop();
+        if (activeButton) activeButton.classList.remove('recording');
+        activeRecognition = null;
+        activeButton = null;
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'ko-KR';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      activeRecognition = recognition;
+      activeButton = btn;
+      btn.classList.add('recording');
+      recognition.onresult = e => {
+        const text = Array.from(e.results).map(r => r[0].transcript).join(' ');
+        appendText($(id), text);
+        if (typeof callback === 'function') callback();
+      };
+      recognition.onerror = () => alert('음성 입력이 잘 되지 않았습니다. 마이크 권한을 확인해 주세요.');
+      recognition.onend = () => {
+        btn.classList.remove('recording');
+        activeRecognition = null;
+        activeButton = null;
+      };
+      recognition.start();
+    }
+
+    function syncKeywords() {
+      for (let i = 1; i <= 4; i++) {
+        const kw = val('kw' + i).trim();
+        $('showKw' + i).textContent = kw && kw !== ' ' ? kw : '키워드 ' + i;
+      }
+    }
+
+    ['q1','q2','q3','q4'].forEach((id, idx) => {
+      setTimeout(() => {
+        const el = $(id);
+        if (el) el.addEventListener('input', () => {
+          const target = $('readQ' + (idx + 1));
+          target.textContent = el.value.trim() || '질문 ' + (idx + 1);
+        });
+      }, 0);
+    });
+
+    function memberNames() {
+      const raw = $('members').value.trim();
+      if (!raw) return ['모둠원 1', '모둠원 2', '모둠원 3', '모둠원 4'];
+      return raw.split(/[,，\n]/).map(x => x.trim()).filter(Boolean);
+    }
+
+    function makeMemberEval() {
+      const box = $('memberEvalBox');
+      box.innerHTML = '';
+      memberNames().forEach((name, idx) => {
+        const row = document.createElement('div');
+        row.className = 'member-eval';
+        row.innerHTML = `<b>${name}</b><div class="stars" id="stars_${idx}"></div><input type="hidden" id="score_${idx}" value="0" data-name="${name}">`;
+        box.appendChild(row);
+        makeStars('stars_' + idx, 'score_' + idx);
+      });
+    }
+
+    function makeStars(boxId, scoreId) {
+      const box = $(boxId);
+      box.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const s = document.createElement('span');
+        s.className = 'star';
+        s.textContent = '★';
+        s.onclick = () => setStars(boxId, scoreId, i);
+        box.appendChild(s);
+      }
+    }
+
+    function setStars(boxId, scoreId, n) {
+      $(scoreId).value = n;
+      document.querySelectorAll('#' + boxId + ' .star').forEach((s, idx) => {
+        s.classList.toggle('on', idx < n);
+      });
+    }
+
+    function memberEvalText() {
+      const names = memberNames();
+      return names.map((name, idx) => {
+        const scoreEl = $('score_' + idx);
+        const score = scoreEl ? Number(scoreEl.value) : 0;
+        return `${name}: ${'★'.repeat(score)}${'☆'.repeat(5-score)}`;
+      }).join('\n');
+    }
+
+    function makeReport() {
+      syncKeywords();
+      const questions = [
+        `${val('kw1')} : ${val('q1')}`,
+        `${val('kw2')} : ${val('q2')}`,
+        `${val('kw3')} : ${val('q3')}`,
+        `${val('kw4')} : ${val('q4')}`
+      ];
+      const answers = [val('a1'), val('a2'), val('a3'), val('a4')];
+      $('reportContent').innerHTML = `
+        <div class="report-box"><b>단원</b> ${val('unit')}<br><b>학습 주제</b> ${val('topic')}<br><b>모둠</b> ${val('groupName')}<br><b>모둠원</b> ${val('members')}</div>
+        <div class="report-box"><b>활동 1. 핵심 키워드</b><br>① ${val('kw1')} ② ${val('kw2')} ③ ${val('kw3')} ④ ${val('kw4')}</div>
+        <div class="report-box"><b>활동 2. 학습 질문 만들기</b><br>① ${questions[0]}<br>② ${questions[1]}<br>③ ${questions[2]}<br>④ ${questions[3]}</div>
+        <div class="report-box"><b>활동 3. 돌아가며 답 찾기</b><br>① ${answers[0]}<br>② ${answers[1]}<br>③ ${answers[2]}<br>④ ${answers[3]}<br><br><b>탐험을 마치며</b><br>${val('summary')}</div>
+        <div class="report-box"><b>활동 4. 생활 질문과 약속</b><br><b>생활 질문</b><br>${val('lifeQuestion')}<br><br><b>생활 약속</b><br>${val('lifePromise')}<br><br><b>개인별 참여도 평가</b><br>${memberEvalText()}<br><br><b>모둠 활동 돌아보기</b><br>${val('reflection')}</div>
+      `;
+      $('reportArea').style.display = 'block';
+      $('reportArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function saveImage() {
+      makeReport();
+      const target = $('reportArea');
+      await new Promise(r => setTimeout(r, 200));
+      try {
+        const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff' });
+        const link = document.createElement('a');
+        const fileName = `모둠_질문_나침반_${new Date().toISOString().slice(0,10)}.png`;
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        alert('이미지 파일 저장을 시작했습니다. 다운로드 폴더를 확인하세요.');
+      } catch (e) {
+        alert('이미지 저장이 되지 않았습니다. PDF로 저장 버튼을 사용해 주세요.');
+      }
+    }
+
+    function resetAll() {
+      if (!confirm('작성한 내용을 모두 지우고 처음부터 다시 시작할까요?')) return;
+      document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+      syncKeywords();
+      makeMemberEval();
+      $('reportArea').style.display = 'none';
+    }
+
+    syncKeywords();
+    makeMemberEval();
+  </script>
+</body>
+</html>
