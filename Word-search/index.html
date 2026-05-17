@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>여러 가지로 해석되는 낱말 알기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, .35), transparent 28%),
+        radial-gradient(circle at top right, rgba(251, 191, 36, .32), transparent 30%),
+        linear-gradient(135deg, #eff6ff 0%, #fefce8 45%, #f0fdf4 100%);
+      min-height: 100vh;
+    }
+    .title-font { font-family: 'Jua', 'Noto Sans KR', sans-serif; }
+    .card { background: rgba(255,255,255,.94); border: 3px solid rgba(59,130,246,.18); box-shadow: 0 14px 30px rgba(15,23,42,.08); }
+    .step-badge { font-family: 'Jua'; }
+    textarea, input { outline: none; }
+    textarea:focus, input:focus { box-shadow: 0 0 0 4px rgba(59,130,246,.18); border-color: #3b82f6; }
+    .star-btn { font-size: 2rem; line-height: 1; filter: grayscale(1); opacity: .45; transition: .15s; }
+    .star-btn.active { filter: grayscale(0); opacity: 1; transform: scale(1.08); }
+    .star-btn:hover { transform: scale(1.12); }
+    .sticky-save {
+      position: sticky;
+      bottom: 0;
+      z-index: 30;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      border-top: 3px solid rgba(59,130,246,.2);
+    }
+    @media print {
+      .no-print { display:none !important; }
+      body { background: white; }
+      .card { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body class="text-slate-800">
+  <main class="max-w-5xl mx-auto px-4 py-6 pb-28">
+    <section class="card rounded-[2rem] p-6 mb-5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <p class="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-700 font-bold mb-2">4학년 국어</p>
+          <h1 class="title-font text-4xl md:text-5xl text-blue-800">여러 가지로 해석되는 낱말 알기</h1>
+          <p class="mt-2 text-lg font-semibold text-slate-600">모둠 친구들과 국어사전으로 동음이의어의 뜻을 찾고, 공통점과 차이점을 비교해 봅시다.</p>
+        </div>
+        <div class="bg-yellow-100 border-2 border-yellow-300 rounded-3xl p-4 text-center min-w-[180px]">
+          <div class="title-font text-2xl text-yellow-800">오늘의 낱말</div>
+          <div class="text-4xl font-black text-slate-800">차다 · 눈</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="worksheet" class="space-y-5">
+      <section class="card rounded-[2rem] p-5">
+        <h2 class="title-font text-3xl text-slate-800 mb-4">모둠 기본 정보</h2>
+        <div class="grid md:grid-cols-4 gap-3">
+          <label class="font-bold">반
+            <input id="className" class="mt-1 w-full rounded-2xl border-2 border-slate-200 p-3" placeholder="예: 4학년 1반" />
+          </label>
+          <label class="font-bold">모둠 이름
+            <input id="groupName" class="mt-1 w-full rounded-2xl border-2 border-slate-200 p-3" placeholder="예: 사전 탐험대" />
+          </label>
+          <label class="font-bold md:col-span-2">모둠원 이름
+            <input id="memberNames" class="mt-1 w-full rounded-2xl border-2 border-slate-200 p-3" placeholder="예: 김○○, 이○○, 박○○, 최○○" />
+          </label>
+          <label class="font-bold md:col-span-4">날짜
+            <input id="dateText" type="date" class="mt-1 w-full rounded-2xl border-2 border-slate-200 p-3" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card rounded-[2rem] p-5">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="step-badge text-xl px-4 py-2 rounded-full bg-blue-600 text-white">1단계</span>
+          <h2 class="title-font text-3xl">인터넷 국어사전으로 뜻 찾기</h2>
+        </div>
+        <p class="mb-4 text-slate-600 font-semibold">국어사전에 찾은 뜻을 돌아가며 읽기를 해봅시다.</p>
+        <div class="no-print flex flex-wrap gap-2 mb-4">
+          <button onclick="openDict('차다')" class="px-4 py-2 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700">국어사전에서 ‘차다’ 찾기</button>
+          <button onclick="openDict('눈')" class="px-4 py-2 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">국어사전에서 ‘눈’ 찾기</button>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="rounded-3xl bg-blue-50 border-2 border-blue-100 p-4">
+            <h3 class="title-font text-2xl text-blue-800 mb-2">낱말: 차다</h3>
+            <label class="font-bold block mb-2">문장 1. 공을 차다</label>
+            <textarea class="w-full rounded-2xl border-2 border-blue-100 p-3 min-h-[80px]" placeholder="이 문장에서 ‘차다’는 어떤 뜻인가요?"></textarea>
+            <label class="font-bold block mt-3 mb-2">문장 2. 물이 차다</label>
+            <textarea class="w-full rounded-2xl border-2 border-blue-100 p-3 min-h-[80px]" placeholder="이 문장에서 ‘차다’는 어떤 뜻인가요?"></textarea>
+            <label class="font-bold block mt-3 mb-2">정리</label>
+            <textarea class="w-full rounded-2xl border-2 border-blue-100 p-3 min-h-[80px]" placeholder="두 뜻은 서로 관련이 있나요? 왜 그렇게 생각하나요?"></textarea>
+          </div>
+
+          <div class="rounded-3xl bg-emerald-50 border-2 border-emerald-100 p-4">
+            <h3 class="title-font text-2xl text-emerald-800 mb-2">낱말: 눈</h3>
+            <label class="font-bold block mb-2">문장 1. 눈이 나쁘다</label>
+            <textarea class="w-full rounded-2xl border-2 border-emerald-100 p-3 min-h-[80px]" placeholder="이 문장에서 ‘눈’은 어떤 뜻인가요?"></textarea>
+            <label class="font-bold block mt-3 mb-2">문장 2. 눈을 깜빡이다</label>
+            <textarea class="w-full rounded-2xl border-2 border-emerald-100 p-3 min-h-[80px]" placeholder="이 문장에서 ‘눈’은 어떤 뜻인가요?"></textarea>
+            <label class="font-bold block mt-3 mb-2">정리</label>
+            <textarea class="w-full rounded-2xl border-2 border-emerald-100 p-3 min-h-[80px]" placeholder="두 뜻은 서로 관련이 있나요? 왜 그렇게 생각하나요?"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card rounded-[2rem] p-5">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="step-badge text-xl px-4 py-2 rounded-full bg-purple-600 text-white">2단계</span>
+          <h2 class="title-font text-3xl">‘차다’와 ‘눈’ 비교하기</h2>
+        </div>
+        <p class="mb-4 text-slate-600 font-semibold">모둠에서 의견을 나누며 두 낱말의 공통점과 차이점을 찾아 동음이의어의 특징을 알아봅시다.</p>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="rounded-3xl bg-purple-50 border-2 border-purple-100 p-4">
+            <h3 class="title-font text-2xl text-purple-800 mb-2">공통점</h3>
+            <textarea class="w-full rounded-2xl border-2 border-purple-100 p-3 min-h-[170px]" placeholder="예: 소리는 같지만 문장에 따라 뜻이 달라집니다."></textarea>
+          </div>
+          <div class="rounded-3xl bg-orange-50 border-2 border-orange-100 p-4">
+            <h3 class="title-font text-2xl text-orange-800 mb-2">‘차다’의 특징</h3>
+            <textarea class="w-full rounded-2xl border-2 border-orange-100 p-3 min-h-[170px]" placeholder="예: 두 뜻이 서로 관련이 적어 보입니다."></textarea>
+          </div>
+          <div class="rounded-3xl bg-sky-50 border-2 border-sky-100 p-4">
+            <h3 class="title-font text-2xl text-sky-800 mb-2">‘눈’의 특징</h3>
+            <textarea class="w-full rounded-2xl border-2 border-sky-100 p-3 min-h-[170px]" placeholder="예: 두 뜻이 보는 기관과 관련이 있습니다."></textarea>
+          </div>
+        </div>
+        <div class="mt-4 rounded-3xl bg-slate-50 border-2 border-slate-200 p-4">
+          <h3 class="title-font text-2xl mb-2">우리 모둠이 찾은 동음이의어의 특징</h3>
+          <textarea class="w-full rounded-2xl border-2 border-slate-200 p-3 min-h-[100px]" placeholder="동음이의어란 무엇인지 우리 모둠의 말로 정리해 봅시다."></textarea>
+        </div>
+      </section>
+
+      <section class="card rounded-[2rem] p-5">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="step-badge text-xl px-4 py-2 rounded-full bg-rose-600 text-white">3단계</span>
+          <h2 class="title-font text-3xl">다른 동음이의어 찾아 문장 만들기</h2>
+        </div>
+        <p class="mb-4 text-slate-600 font-semibold">모둠 친구들과 국어사전에서 다른 동음이의어를 찾아 두 가지 뜻이 드러나도록 문장을 만들어 봅시다.</p>
+
+        <div id="wordList" class="space-y-4">
+          <div class="homonym-card rounded-3xl bg-rose-50 border-2 border-rose-100 p-4">
+            <div class="grid md:grid-cols-3 gap-3 mb-3">
+              <label class="font-bold">낱말
+                <input class="mt-1 w-full rounded-2xl border-2 border-rose-100 p-3" placeholder="예: 말" />
+              </label>
+              <label class="font-bold md:col-span-2">이 낱말을 고른 까닭
+                <input class="mt-1 w-full rounded-2xl border-2 border-rose-100 p-3" placeholder="소리는 같지만 뜻이 여러 가지라서 골랐습니다." />
+              </label>
+            </div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="font-bold">뜻 1이 드러나는 문장
+                <textarea class="mt-1 w-full rounded-2xl border-2 border-rose-100 p-3 min-h-[90px]" placeholder="예: 말을 타고 들판을 달렸습니다."></textarea>
+              </label>
+              <label class="font-bold">뜻 2가 드러나는 문장
+                <textarea class="mt-1 w-full rounded-2xl border-2 border-rose-100 p-3 min-h-[90px]" placeholder="예: 친구의 말을 귀 기울여 들었습니다."></textarea>
+              </label>
+            </div>
+            <label class="font-bold block mt-3">두 뜻 비교하기
+              <textarea class="mt-1 w-full rounded-2xl border-2 border-rose-100 p-3 min-h-[80px]" placeholder="두 뜻이 서로 관련이 있는지, 없는지 설명해 봅시다."></textarea>
+            </label>
+          </div>
+        </div>
+        <button onclick="addHomonymCard()" class="no-print mt-4 px-4 py-2 rounded-2xl bg-rose-600 text-white font-bold hover:bg-rose-700">+ 동음이의어 더 찾기</button>
+      </section>
+
+      <section class="card rounded-[2rem] p-5">
+        <h2 class="title-font text-3xl mb-3">모둠 활동 점검하기</h2>
+        <div class="grid md:grid-cols-3 gap-3 mb-5">
+          <label class="rounded-2xl bg-white border-2 border-slate-200 p-3 font-bold"><input type="checkbox" class="mr-2 scale-125"> 모둠원이 역할을 나누어 국어사전을 찾아보았습니다.</label>
+          <label class="rounded-2xl bg-white border-2 border-slate-200 p-3 font-bold"><input type="checkbox" class="mr-2 scale-125"> ‘차다’와 ‘눈’의 공통점과 차이점을 함께 비교했습니다.</label>
+          <label class="rounded-2xl bg-white border-2 border-slate-200 p-3 font-bold"><input type="checkbox" class="mr-2 scale-125"> 다른 동음이의어를 찾아 문장으로 설명했습니다.</label>
+        </div>
+
+        <div class="rounded-3xl bg-yellow-50 border-2 border-yellow-200 p-4">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-3">
+            <div>
+              <h3 class="title-font text-2xl text-yellow-800">모둠원 자기 별점</h3>
+              <p class="font-semibold text-slate-600">모둠원 각자가 오늘 활동에 얼마나 열심히 참여했는지 별을 눌러 표시해 봅시다.</p>
+            </div>
+            <button onclick="addRatingRow()" class="no-print px-4 py-2 rounded-2xl bg-yellow-500 text-white font-black hover:bg-yellow-600">+ 모둠원 추가</button>
+          </div>
+          <div id="ratingList" class="space-y-3">
+            <div class="rating-row grid md:grid-cols-[1fr_220px_90px] gap-3 items-center rounded-2xl bg-white border-2 border-yellow-100 p-3">
+              <input class="rounded-2xl border-2 border-yellow-100 p-3 font-bold" placeholder="모둠원 이름" />
+              <div class="star-rating flex gap-1 justify-center" data-score="0">
+                <button type="button" class="star-btn" onclick="setRating(this, 1)">⭐</button>
+                <button type="button" class="star-btn" onclick="setRating(this, 2)">⭐</button>
+                <button type="button" class="star-btn" onclick="setRating(this, 3)">⭐</button>
+                <button type="button" class="star-btn" onclick="setRating(this, 4)">⭐</button>
+                <button type="button" class="star-btn" onclick="setRating(this, 5)">⭐</button>
+              </div>
+              <div class="score-text text-center font-black text-yellow-700">0점</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="sticky-save no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
+      <p class="font-bold text-slate-700">모둠 학습을 마친 뒤 결과물을 PDF로 저장하세요.</p>
+      <div class="flex gap-2">
+        <button onclick="savePDF()" class="px-5 py-3 rounded-2xl bg-blue-700 text-white font-black hover:bg-blue-800">📄 학습 결과 PDF 저장하기</button>
+        <button onclick="resetWorksheet()" class="px-5 py-3 rounded-2xl bg-slate-200 text-slate-800 font-black hover:bg-slate-300">처음부터 다시</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('dateText').valueAsDate = new Date();
+
+    function openDict(word) {
+      const url = 'https://ko.dict.naver.com/search.nhn?query=' + encodeURIComponent(word);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function addHomonymCard() {
+      const list = document.getElementById('wordList');
+      const first = list.querySelector('.homonym-card');
+      const clone = first.cloneNode(true);
+      clone.querySelectorAll('input, textarea').forEach(el => {
+        el.value = '';
+        if (el.type === 'checkbox') el.checked = false;
+      });
+      list.appendChild(clone);
+      clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function setRating(button, score) {
+      const rating = button.closest('.star-rating');
+      rating.dataset.score = score;
+      rating.querySelectorAll('.star-btn').forEach((star, index) => {
+        star.classList.toggle('active', index < score);
+      });
+      button.closest('.rating-row').querySelector('.score-text').textContent = score + '점';
+    }
+
+    function addRatingRow() {
+      const list = document.getElementById('ratingList');
+      const first = list.querySelector('.rating-row');
+      const clone = first.cloneNode(true);
+      clone.querySelector('input').value = '';
+      clone.querySelector('.star-rating').dataset.score = 0;
+      clone.querySelectorAll('.star-btn').forEach(star => star.classList.remove('active'));
+      clone.querySelector('.score-text').textContent = '0점';
+      list.appendChild(clone);
+    }
+
+    function resetWorksheet() {
+      if (!confirm('입력한 내용을 모두 지우고 처음부터 다시 시작할까요?')) return;
+      document.querySelectorAll('input, textarea').forEach(el => {
+        if (el.type === 'date') el.valueAsDate = new Date();
+        else if (el.type === 'checkbox') el.checked = false;
+        else el.value = '';
+      });
+      document.querySelectorAll('.star-rating').forEach(rating => {
+        rating.dataset.score = 0;
+        rating.querySelectorAll('.star-btn').forEach(star => star.classList.remove('active'));
+      });
+      document.querySelectorAll('.score-text').forEach(score => score.textContent = '0점');
+      const list = document.getElementById('wordList');
+      const cards = list.querySelectorAll('.homonym-card');
+      cards.forEach((card, idx) => { if (idx > 0) card.remove(); });
+      const ratingList = document.getElementById('ratingList');
+      const ratingRows = ratingList.querySelectorAll('.rating-row');
+      ratingRows.forEach((row, idx) => { if (idx > 0) row.remove(); });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function savePDF() {
+      const btn = event.currentTarget;
+      const oldText = btn.textContent;
+      btn.textContent = 'PDF 만드는 중...';
+      btn.disabled = true;
+
+      try {
+        const target = document.getElementById('worksheet');
+        const canvas = await html2canvas(target, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          windowWidth: target.scrollWidth,
+          windowHeight: target.scrollHeight
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 8;
+        const imgWidth = pageWidth - margin * 2;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = margin;
+
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight + margin;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+          heightLeft -= (pageHeight - margin * 2);
+        }
+
+        const name = document.getElementById('groupName').value.trim() || '모둠';
+        pdf.save('동음이의어_모둠학습결과_' + name + '.pdf');
+      } catch (error) {
+        alert('PDF 저장이 되지 않았습니다. 크롬 브라우저에서 다시 시도하거나, 입력 내용이 너무 길면 조금 줄여 주세요.');
+        console.error(error);
+      } finally {
+        btn.textContent = oldText;
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
