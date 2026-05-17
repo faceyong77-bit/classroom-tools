@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>복권 추첨 프로그램</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', 'Noto Sans KR', Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f8fbff, #fff7df);
+      color: #222;
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 980px;
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+      padding: 28px;
+      border: 4px solid #ffe08a;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      color: #ff8a00;
+      letter-spacing: -1px;
+    }
+
+    .header p {
+      margin: 10px 0 0;
+      font-size: clamp(16px, 2vw, 20px);
+      color: #555;
+    }
+
+    .setting-box {
+      background: #fff9e8;
+      border: 2px solid #ffd36b;
+      border-radius: 22px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      font-weight: 800;
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px;
+      font-size: 22px;
+      border: 3px solid #ffd36b;
+      border-radius: 16px;
+      outline: none;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    input:focus {
+      border-color: #ff9800;
+      box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.16);
+    }
+
+    button {
+      border: none;
+      border-radius: 18px;
+      padding: 16px 18px;
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .primary-btn {
+      background: #ff9800;
+      color: #fff;
+      box-shadow: 0 8px 0 #d87900;
+    }
+
+    .reset-btn {
+      background: #e9eef7;
+      color: #24324a;
+      box-shadow: 0 8px 0 #c2cddd;
+    }
+
+    .grade-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+      background: #f8fbff;
+      border: 2px solid #dce9ff;
+      border-radius: 22px;
+      padding: 16px;
+    }
+
+    .grade-btn {
+      color: #fff;
+      box-shadow: 0 7px 0 rgba(0,0,0,0.18);
+    }
+
+    .grade-btn.grade-1 { background: #ff4d4d; }
+    .grade-btn.grade-2 { background: #ff9800; }
+    .grade-btn.grade-3 { background: #1e88e5; }
+    .grade-btn.grade-4 { background: #43a047; }
+
+    .tile.revealed-grade {
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: 0 9px 0 rgba(0,0,0,0.18);
+      transform: translateY(0);
+    }
+
+    .tile.revealed-grade-1 {
+      background: #ff4d4d;
+      border-color: #d82020;
+    }
+
+    .tile.revealed-grade-2 {
+      background: #ff9800;
+      border-color: #d87900;
+    }
+
+    .tile.revealed-grade-3 {
+      background: #1e88e5;
+      border-color: #1263aa;
+    }
+
+    .tile.revealed-grade-4 {
+      background: #43a047;
+      border-color: #2f7d34;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .info-card {
+      flex: 1;
+      min-width: 180px;
+      background: #f4f8ff;
+      border: 2px solid #dce9ff;
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .info-card strong {
+      color: #1d69ff;
+      font-size: 24px;
+    }
+
+    .tile-area {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .tile {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #fff0b5, #ffc04a);
+      border: 4px solid #ff9f1c;
+      color: #6a3b00;
+      font-size: 34px;
+      font-weight: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 9px 0 #d77a00;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .tile::before {
+      content: '🎟️';
+      position: absolute;
+      top: 7px;
+      left: 9px;
+      font-size: 20px;
+      opacity: 0.75;
+    }
+
+    .tile.opened {
+      cursor: default;
+      box-shadow: none;
+      transform: translateY(6px);
+      border-color: #bbb;
+      background: #f1f1f1;
+      color: #888;
+    }
+
+    .tile.win {
+      background: linear-gradient(145deg, #ffe96b, #ff5c5c);
+      border-color: #ff2d2d;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    .tile.lose {
+      background: #e8e8e8;
+      border-color: #c8c8c8;
+      color: #777;
+    }
+
+    .message {
+      margin-top: 18px;
+      min-height: 74px;
+      border-radius: 22px;
+      padding: 18px;
+      text-align: center;
+      font-size: clamp(22px, 4vw, 36px);
+      font-weight: 1000;
+      background: #f6f7fb;
+      border: 3px dashed #cfd6e8;
+    }
+
+    .message.win-msg {
+      background: #fff1d6;
+      border-color: #ff9f1c;
+      color: #e85200;
+      animation: pop 0.35s ease;
+    }
+
+    .message.lose-msg {
+      background: #eef2f7;
+      border-color: #b9c3d4;
+      color: #4f5f75;
+    }
+
+    .result-box {
+      margin-top: 24px;
+      background: #fff8ea;
+      border: 3px solid #ffd36b;
+      border-radius: 24px;
+      padding: 20px;
+      display: none;
+    }
+
+    .result-box h2 {
+      margin-top: 0;
+      text-align: center;
+      color: #e87400;
+      font-size: 32px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 20px;
+      padding: 18px;
+      text-align: center;
+      border: 3px solid #ffe0a3;
+    }
+
+    .result-card h3 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .result-number {
+      font-size: 28px;
+      font-weight: 1000;
+      color: #ff5a00;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .guide {
+      margin-top: 18px;
+      font-size: 15px;
+      color: #666;
+      line-height: 1.6;
+      background: #fafafa;
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.9); }
+      70% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .setting-box,
+      .grade-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .tile-area {
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+        gap: 10px;
+      }
+
+      .tile {
+        font-size: 28px;
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <h1>🎁 복권 추첨</h1>
+      <p>참여 인원과 등수별 당첨자 수를 정한 뒤 번호를 눌러 결과를 확인하세요.</p>
+    </section>
+
+    <section class="setting-box">
+      <div>
+        <label for="peopleCount">참여 인원</label>
+        <input id="peopleCount" type="number" min="1" max="200" value="25" />
+      </div>
+      <div>
+        <label for="firstCount">1등 당첨자 수</label>
+        <input id="firstCount" type="number" min="0" max="200" value="1" />
+      </div>
+      <div>
+        <label for="secondCount">2등 당첨자 수</label>
+        <input id="secondCount" type="number" min="0" max="200" value="1" />
+      </div>
+      <div>
+        <label for="thirdCount">3등 당첨자 수</label>
+        <input id="thirdCount" type="number" min="0" max="200" value="1" />
+      </div>
+      <div>
+        <label for="fourthCount">4등 당첨자 수</label>
+        <input id="fourthCount" type="number" min="0" max="200" value="3" />
+      </div>
+      <button class="primary-btn" onclick="createLottery()">번호 만들기</button>
+    </section>
+
+    <section class="grade-buttons">
+      <button class="grade-btn grade-1" onclick="revealGrade('1')">1등 보기</button>
+      <button class="grade-btn grade-2" onclick="revealGrade('2')">2등 보기</button>
+      <button class="grade-btn grade-3" onclick="revealGrade('3')">3등 보기</button>
+      <button class="grade-btn grade-4" onclick="revealGrade('4')">4등 보기</button>
+    </section>
+
+    <section class="info-bar">
+      <div class="info-card">전체 번호 <strong id="totalInfo">0</strong>개</div>
+      <div class="info-card">남은 번호 <strong id="leftInfo">0</strong>개</div>
+      <div class="info-card">남은 당첨 <strong id="winnerInfo">0</strong></div>
+      <button class="reset-btn" onclick="showAllResults()">일괄 확인</button>
+      <button class="reset-btn" onclick="resetLottery()">처음부터</button>
+    </section>
+
+    <section id="tileArea" class="tile-area"></section>
+
+    <section id="message" class="message">참여 인원을 입력하고 번호 만들기를 눌러주세요.</section>
+
+    <section id="resultBox" class="result-box">
+      <h2>🏆 당첨 결과 전체 보기</h2>
+      <div class="result-grid">
+        <div class="result-card">
+          <h3>🥇 1등</h3>
+          <div id="firstResult" class="result-number">-</div>
+        </div>
+        <div class="result-card">
+          <h3>🥈 2등</h3>
+          <div id="secondResult" class="result-number">-</div>
+        </div>
+        <div class="result-card">
+          <h3>🥉 3등</h3>
+          <div id="thirdResult" class="result-number">-</div>
+        </div>
+        <div class="result-card">
+          <h3>🎁 4등</h3>
+          <div id="fourthResult" class="result-number">-</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide">
+      <strong>사용 방법</strong><br />
+      1. 참여 인원과 등수별 당첨자 수를 입력합니다.<br />
+      2. 번호 만들기를 누르면 입력한 인원에 맞게 등수가 설정됩니다.<br /><br />
+      3. 학생이 자신의 번호를 누르면 당첨 또는 꽝이 바로 표시됩니다.<br />
+      4. 한 번 확인한 번호는 다시 누를 수 없습니다.<br />
+      5. 1등~4등 보기 버튼을 누르면 해당 당첨 번호가 색깔로 표시됩니다.
+    </section>
+  </main>
+
+  <script>
+    let lotteryData = [];
+    let openedCount = 0;
+    let remainingWinners = 0;
+    let gradeInfo = {
+      first: 0,
+      second: 0,
+      third: 0,
+      fourth: 0
+    };
+
+    const peopleInput = document.getElementById('peopleCount');
+    const firstInput = document.getElementById('firstCount');
+    const secondInput = document.getElementById('secondCount');
+    const thirdInput = document.getElementById('thirdCount');
+    const fourthInput = document.getElementById('fourthCount');
+
+    const tileArea = document.getElementById('tileArea');
+    const message = document.getElementById('message');
+    const totalInfo = document.getElementById('totalInfo');
+    const leftInfo = document.getElementById('leftInfo');
+    const winnerInfo = document.getElementById('winnerInfo');
+    const resultBox = document.getElementById('resultBox');
+
+    function createLottery() {
+      const peopleCount = Number(peopleInput.value);
+      const firstCount = Number(firstInput.value);
+      const secondCount = Number(secondInput.value);
+      const thirdCount = Number(thirdInput.value);
+      const fourthCount = Number(fourthInput.value);
+
+      if (![peopleCount, firstCount, secondCount, thirdCount, fourthCount].every(Number.isInteger)) {
+        showMessage('참여 인원과 당첨자 수는 숫자로 입력해주세요.', 'lose');
+        return;
+      }
+
+      if (peopleCount < 1) {
+        showMessage('참여 인원은 1명 이상 입력해주세요.', 'lose');
+        return;
+      }
+
+      if (firstCount < 0 || secondCount < 0 || thirdCount < 0 || fourthCount < 0) {
+        showMessage('당첨자 수는 0명 이상 입력해주세요.', 'lose');
+        return;
+      }
+
+      const totalWinnerCount = firstCount + secondCount + thirdCount + fourthCount;
+
+      if (totalWinnerCount < 1) {
+        showMessage('당첨자는 1명 이상 설정해주세요.', 'lose');
+        return;
+      }
+
+      if (totalWinnerCount > peopleCount) {
+        showMessage('참여 인원이 너무 적습니다.', 'lose');
+        return;
+      }
+
+      lotteryData = [];
+      openedCount = 0;
+      remainingWinners = totalWinnerCount;
+
+      gradeInfo = {
+        first: firstCount,
+        second: secondCount,
+        third: thirdCount,
+        fourth: fourthCount
+      };
+      tileArea.innerHTML = '';
+
+      const winnerNumbers = pickWinnerNumbers(peopleCount, totalWinnerCount);
+
+      for (let i = 1; i <= peopleCount; i++) {
+        let prize = '꽝';
+
+        if (winnerNumbers.first.includes(i)) prize = '1';
+        else if (winnerNumbers.second.includes(i)) prize = '2';
+        else if (winnerNumbers.third.includes(i)) prize = '3';
+        else if (winnerNumbers.fourth.includes(i)) prize = '4';
+
+        lotteryData.push({
+          number: i,
+          prize,
+          opened: false
+        });
+
+        const tile = document.createElement('button');
+        tile.className = 'tile';
+        tile.textContent = i;
+        tile.dataset.number = i;
+        tile.dataset.prize = prize;
+        tile.setAttribute('aria-label', i + '번 복권 확인');
+        tile.onclick = () => openTile(i, tile);
+        tileArea.appendChild(tile);
+      }
+
+      updateInfo();
+      resultBox.style.display = 'none';
+      showMessage('번호가 만들어졌습니다. 원하는 번호를 눌러보세요!', 'normal');
+    }
+
+    function pickWinnerNumbers(total, winners) {
+      const numbers = Array.from({ length: total }, (_, index) => index + 1);
+
+      for (let i = numbers.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[randomIndex]] = [numbers[randomIndex], numbers[i]];
+      }
+
+      return {
+        first: numbers.slice(0, gradeInfo.first),
+        second: numbers.slice(gradeInfo.first, gradeInfo.first + gradeInfo.second),
+        third: numbers.slice(gradeInfo.first + gradeInfo.second, gradeInfo.first + gradeInfo.second + gradeInfo.third),
+        fourth: numbers.slice(gradeInfo.first + gradeInfo.second + gradeInfo.third, winners)
+      };
+    }
+
+    function openTile(number, tileElement) {
+      const item = lotteryData.find(data => data.number === number);
+      if (!item || item.opened) return;
+
+      item.opened = true;
+      openedCount++;
+      tileElement.classList.add('opened');
+      tileElement.disabled = true;
+
+      if (item.prize !== '꽝') {
+        remainingWinners--;
+        tileElement.classList.add('win');
+        tileElement.innerHTML = item.prize;
+        showMessage(number + '번 ' + item.prize + '등 당첨! 축하합니다 🎉', 'win');
+        launchConfetti();
+      } else {
+        tileElement.classList.add('lose');
+        tileElement.innerHTML = '꽝';
+        showMessage(number + '번은 아쉽게도 꽝입니다.', 'lose');
+      }
+
+      updateInfo();
+    }
+
+    function updateInfo() {
+      totalInfo.textContent = lotteryData.length;
+      leftInfo.textContent = Math.max(lotteryData.length - openedCount, 0);
+      winnerInfo.textContent = `총 ${Math.max(remainingWinners, 0)}명`;
+    }
+
+    function showMessage(text, type) {
+      message.className = 'message';
+      if (type === 'win') message.classList.add('win-msg');
+      if (type === 'lose') message.classList.add('lose-msg');
+      message.textContent = text;
+    }
+
+    function revealGrade(grade) {
+      if (lotteryData.length === 0) {
+        showMessage('먼저 번호를 만들어주세요.', 'lose');
+        return;
+      }
+
+      const selected = lotteryData.filter(item => item.prize === grade).map(item => item.number);
+
+      if (selected.length === 0) {
+        showMessage(grade + '등 당첨자가 없습니다.', 'lose');
+        return;
+      }
+
+      document.querySelectorAll('.tile').forEach(tile => {
+        tile.classList.remove(
+          'revealed-grade',
+          'revealed-grade-1',
+          'revealed-grade-2',
+          'revealed-grade-3',
+          'revealed-grade-4'
+        );
+      });
+
+      document.querySelectorAll('.tile').forEach(tile => {
+        if (tile.dataset.prize === grade) {
+          tile.classList.add('revealed-grade', 'revealed-grade-' + grade);
+          tile.textContent = tile.dataset.number;
+        }
+      });
+
+      showMessage(grade + '등 당첨 번호: ' + selected.join(', ') + '번', 'win');
+    }
+
+    function showAllResults() {
+      if (lotteryData.length === 0) {
+        showMessage('먼저 번호를 만들어주세요.', 'lose');
+        return;
+      }
+
+      const first = lotteryData.filter(item => item.prize === '1').map(item => item.number);
+      const second = lotteryData.filter(item => item.prize === '2').map(item => item.number);
+      const third = lotteryData.filter(item => item.prize === '3').map(item => item.number);
+      const fourth = lotteryData.filter(item => item.prize === '4').map(item => item.number);
+
+      document.getElementById('firstResult').textContent = first.join(', ') + '번';
+      document.getElementById('secondResult').textContent = second.join(', ') + '번';
+      document.getElementById('thirdResult').textContent = third.join(', ') + '번';
+      document.getElementById('fourthResult').textContent = fourth.length > 0 ? fourth.join(', ') + '번' : '-';
+
+      resultBox.style.display = 'block';
+      resultBox.scrollIntoView({ behavior: 'smooth' });
+
+      showMessage('전체 당첨 결과를 확인했습니다.', 'win');
+    }
+
+    function resetLottery() {
+      peopleInput.value = 25;
+      firstInput.value = 1;
+      secondInput.value = 1;
+      thirdInput.value = 1;
+      fourthInput.value = 3;
+
+      lotteryData = [];
+      openedCount = 0;
+      remainingWinners = 0;
+      tileArea.innerHTML = '';
+      updateInfo();
+      showMessage('참여 인원을 입력하고 번호 만들기를 눌러주세요.', 'normal');
+    }
+
+    function launchConfetti() {
+      const emojis = ['🎉', '✨', '🎊', '⭐', '👏'];
+      for (let i = 0; i < 28; i++) {
+        const confetti = document.createElement('div');
+        confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        confetti.style.position = 'fixed';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-40px';
+        confetti.style.fontSize = Math.random() * 18 + 22 + 'px';
+        confetti.style.zIndex = '9999';
+        confetti.style.pointerEvents = 'none';
+        confetti.style.transition = 'transform 1.6s ease-out, opacity 1.6s ease-out';
+        document.body.appendChild(confetti);
+
+        requestAnimationFrame(() => {
+          confetti.style.transform = `translateY(${window.innerHeight + 80}px) rotate(${Math.random() * 720}deg)`;
+          confetti.style.opacity = '0';
+        });
+
+        setTimeout(() => confetti.remove(), 1700);
+      }
+    }
+
+    createLottery();
+  </script>
+</body>
+</html>
