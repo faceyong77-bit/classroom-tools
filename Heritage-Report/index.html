@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>해운대 좌동 구석기 유적지 소개 글쓰기</title>
+  <title>우리동네 유산 소개하기</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
@@ -131,7 +131,7 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <p class="section-badge">🏺 우리 동네 유산 탐험</p>
-          <h1 class="title-font text-3xl md:text-5xl text-amber-900 mt-3">해운대 좌동 구석기 유적지 소개 글쓰기</h1>
+          <h1 id="mainTitle" class="title-font text-3xl md:text-5xl text-amber-900 mt-3">우리동네 유산 (　　　　　　) 소개하기</h1>
           <p class="text-stone-700 mt-3 text-lg">조사한 내용을 입력하고, 보고서로 만들어 저장해 보세요.</p>
         </div>
         <div class="text-6xl md:text-7xl">🪨</div>
@@ -143,11 +143,16 @@
     <section class="card rounded-[2rem] p-5 md:p-7 no-print">
       <h2 class="title-font text-3xl text-amber-900 mb-4">✏️ 글쓰기 입력하기</h2>
 
-      <div class="grid md:grid-cols-2 gap-4 mb-5">
+      <div class="grid md:grid-cols-3 gap-4 mb-5">
         <label class="block">
           <span class="font-bold text-stone-700">이름</span>
           <input id="studentName" class="input-box mt-2" placeholder="예: 김해운" />
         </label>
+        <label class="block">
+          <span class="font-bold text-stone-700">유산 이름</span>
+          <input id="heritageName" class="input-box mt-2" placeholder="예: 좌동 구석기 유적지" />
+        </label>
+
         <label class="block">
           <span class="font-bold text-stone-700">날짜</span>
           <input id="date" type="date" class="input-box mt-2" />
@@ -231,7 +236,7 @@
       <div id="reportArea" class="report-paper">
         <div class="text-center border-b-4 border-amber-400 pb-5">
           <div class="text-5xl mb-2">🏺</div>
-          <h2 class="report-title text-3xl md:text-4xl">해운대 좌동 구석기 유적지</h2>
+          <h2 id="reportTitle" class="report-title text-3xl md:text-4xl">우리동네 유산 (　　　　　　) 소개하기</h2>
           <p class="text-stone-600 mt-2">우리 동네 유산 탐험 보고서</p>
           <p id="reportMeta" class="text-sm text-stone-500 mt-2">이름: ________  |  날짜: ________</p>
         </div>
@@ -303,6 +308,9 @@
     }
 
     function makeReport() {
+      const heritage = ($('heritageName').value || '').trim() || '　　　　　　';
+      $('mainTitle').textContent = `우리동네 유산 (${heritage}) 소개하기`;
+      $('reportTitle').textContent = `우리동네 유산 (${heritage}) 소개하기`;
       const name = safeText($('studentName').value, '________');
       const date = safeText($('date').value, '________');
       $('reportMeta').textContent = `이름: ${name}  |  날짜: ${date}`;
@@ -367,7 +375,8 @@
         });
         const link = document.createElement('a');
         const name = safeText($('studentName').value, '학생');
-        link.download = `좌동_구석기_유적지_보고서_${name}.png`;
+        const heritage = ($('heritageName').value || '우리동네유산').trim();
+        link.download = `${heritage}_소개하기_${name}.png`;
         link.href = canvas.toDataURL('image/png');
         document.body.appendChild(link);
         link.click();
@@ -381,6 +390,7 @@
     function resetAll() {
       if (!confirm('입력한 내용을 모두 지우고 처음 상태로 돌아갈까요?')) return;
       $('studentName').value = '';
+      $('heritageName').value = '';
       $('date').valueAsDate = new Date();
       Object.keys(defaults).forEach(key => $(key).value = defaults[key]);
       document.querySelectorAll('.value-chip input').forEach(input => input.checked = true);
