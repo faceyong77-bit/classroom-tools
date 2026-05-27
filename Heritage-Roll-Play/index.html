@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국가유산 역할극 대본 만들기</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+body{
+    font-family:'Noto Sans KR',sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(251,191,36,.25), transparent 25%),
+      radial-gradient(circle at top right, rgba(96,165,250,.25), transparent 25%),
+      linear-gradient(135deg,#fff7ed,#eff6ff);
+}
+
+.title-font{font-family:'Jua',sans-serif;}
+
+.a4{
+    width:210mm;
+    min-height:297mm;
+    background:white;
+    margin:auto;
+    border-radius:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+
+.script-line{
+    border-left:4px solid #60a5fa;
+    padding:10px;
+    margin:8px 0;
+    border-radius:12px;
+    background:#f8fafc;
+    line-height:1.7;
+}
+
+.scene{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:999px;
+    background:#dbeafe;
+    color:#1e3a8a;
+    font-weight:900;
+    margin-top:20px;
+    margin-bottom:8px;
+}
+
+.speaker{
+    font-weight:900;
+    color:#2563eb;
+}
+
+.mic-on{
+    background:#ef4444 !important;
+    color:white !important;
+}
+</style>
+</head>
+
+<body class="min-h-screen p-4">
+
+<div class="max-w-7xl mx-auto">
+
+<header class="text-center mb-6">
+<h1 class="title-font text-5xl text-orange-500">국가유산 역할극 대본 만들기</h1>
+<p class="mt-2 text-slate-700">가치와 근거를 입력하면 돌아가며 말하기 역할극 대본이 자동으로 만들어집니다.</p>
+</header>
+
+<div class="bg-white rounded-3xl shadow-xl p-5 mb-5">
+<h2 class="title-font text-3xl text-sky-700 mb-4">1. 모둠 정보</h2>
+
+<div class="grid md:grid-cols-3 gap-4">
+<div>
+<label class="font-bold">모둠 이름</label>
+<div class="flex gap-2 mt-1">
+<input id="groupName" class="w-full border rounded-xl p-3" value="1모둠">
+<button onclick="voiceInput('groupName',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button>
+</div>
+</div>
+
+<div>
+<label class="font-bold">이끔이</label>
+<div class="flex gap-2 mt-1">
+<input id="leaderName" class="w-full border rounded-xl p-3" value="이끔이">
+<button onclick="voiceInput('leaderName',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button>
+</div>
+</div>
+
+<div>
+<label class="font-bold">주제</label>
+<div class="flex gap-2 mt-1">
+<input id="topic" class="w-full border rounded-xl p-3" value="국가유산 선정하기">
+<button onclick="voiceInput('topic',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button>
+</div>
+</div>
+</div>
+
+<div class="grid md:grid-cols-4 gap-3 mt-4">
+<div class="flex gap-2"><input id="student1" class="w-full border rounded-xl p-3" value="민수"><button onclick="voiceInput('student1',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button></div>
+<div class="flex gap-2"><input id="student2" class="w-full border rounded-xl p-3" value="지우"><button onclick="voiceInput('student2',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button></div>
+<div class="flex gap-2"><input id="student3" class="w-full border rounded-xl p-3" value="서연"><button onclick="voiceInput('student3',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button></div>
+<div class="flex gap-2"><input id="student4" class="w-full border rounded-xl p-3" value="하준"><button onclick="voiceInput('student4',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button></div>
+</div>
+</div>
+
+<div class="bg-white rounded-3xl shadow-xl p-5 mb-5">
+<h2 class="title-font text-3xl text-sky-700 mb-4">2. 국가유산과 가치·근거 입력</h2>
+
+<p class="mb-4 text-slate-700">
+✔ 가치와 근거를 함께 입력하세요.<br>
+✔ 4가지 가치 중 2개 이상 입력해야 선정할 수 있습니다.
+</p>
+
+<div id="heritageArea"></div>
+</div>
+
+<div class="text-center sticky bottom-0 bg-white/95 border rounded-t-3xl shadow-2xl p-4 flex flex-wrap gap-3 justify-center z-50">
+<button onclick="makeScript()" class="px-6 py-3 rounded-2xl bg-orange-500 text-white font-bold">역할극 대본 만들기</button>
+<button onclick="saveScriptHTML()" class="px-6 py-3 rounded-2xl bg-violet-600 text-white font-bold">역할극 대본 저장하기</button>
+<button onclick="savePDF()" class="px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold">PDF파일로 저장하기</button>
+</div>
+
+<div id="paper" class="a4 p-8 mt-6">
+<div class="text-center border-b-4 border-orange-300 pb-4 mb-5">
+<h2 class="title-font text-4xl text-orange-500">국가유산 역할극 대본</h2>
+<p id="paperInfo" class="mt-2 text-slate-600">대본 만들기를 눌러 주세요.</p>
+</div>
+
+<div id="scriptOutput">
+<div class="text-center text-slate-400 py-20">아직 대본이 만들어지지 않았습니다.</div>
+</div>
+</div>
+
+<div class="bg-white rounded-3xl shadow-xl p-5 mt-4 mb-8 text-center">
+  <p class="font-bold text-slate-700 mb-3">역할극 대본을 만든 뒤 저장하세요.</p>
+  <div class="flex flex-wrap gap-3 justify-center">
+    <button onclick="saveScriptHTML()" class="px-6 py-3 rounded-2xl bg-violet-600 text-white font-bold">역할극 대본 저장하기</button>
+    <button onclick="savePDF()" class="px-6 py-3 rounded-2xl bg-emerald-600 text-white font-bold">PDF파일로 저장하기</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+
+const valueTypes = [
+{key:'history',label:'역사적 가치'},
+{key:'science',label:'과학적 가치'},
+{key:'beauty',label:'심미적 가치'},
+{key:'eco',label:'생태·환경적 가치'}
+];
+
+const examples = {
+history:[
+'옛날 사람들의 생활 모습을 알 수 있기 때문입니다.',
+'오랫동안 전해져 내려온 역사 이야기가 담겨 있기 때문입니다.',
+'우리 조상들의 생각과 문화를 알 수 있기 때문입니다.'
+],
+science:[
+'옛사람들의 뛰어난 기술과 지혜가 담겨 있기 때문입니다.',
+'자연환경을 잘 이용한 방법을 볼 수 있기 때문입니다.',
+'과학적인 원리와 구조를 살펴볼 수 있기 때문입니다.'
+],
+beauty:[
+'모양과 색이 아름답기 때문입니다.',
+'주변 환경과 잘 어울려 아름답게 느껴지기 때문입니다.',
+'정교하고 균형 잡힌 모습이 인상적이기 때문입니다.'
+],
+eco:[
+'다양한 동식물이 살아가는 소중한 장소이기 때문입니다.',
+'자연환경의 소중함을 느낄 수 있기 때문입니다.',
+'사람과 자연이 함께 살아가는 모습을 볼 수 있기 때문입니다.'
+]
+};
+
+const categories = [
+{key:'culture',label:'문화유산'},
+{key:'intangible',label:'무형유산'},
+{key:'nature',label:'자연유산'}
+];
+
+function voiceInput(id,btn){
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+alert('크롬 브라우저에서 실행해 주세요.');
+return;
+}
+
+const recog = new SpeechRecognition();
+recog.lang='ko-KR';
+
+btn.classList.add('mic-on');
+btn.innerText='듣는 중';
+
+recog.start();
+
+recog.onresult = function(e){
+document.getElementById(id).value += ' ' + e.results[0][0].transcript;
+};
+
+recog.onend = function(){
+btn.classList.remove('mic-on');
+btn.innerText='🎙️';
+};
+}
+
+function buildInputs(){
+
+const area = document.getElementById('heritageArea');
+
+categories.forEach(cat=>{
+
+const box = document.createElement('div');
+box.className='border-2 rounded-3xl p-4 mb-6 bg-slate-50';
+
+let html = `<h3 class="title-font text-2xl mb-4 text-sky-700">${cat.label}</h3>`;
+
+for(let i=0;i<4;i++){
+
+html += `
+<div class="bg-white border rounded-3xl p-4 mb-5">
+
+<div class="flex items-center gap-2 mb-4">
+<input id="${cat.key}_name_${i}" class="w-full border rounded-xl p-3 font-bold" placeholder="${i+1}번 학생 국가유산">
+<button onclick="voiceInput('${cat.key}_name_${i}',this)" class="px-3 rounded-xl bg-sky-100 border">🎙️</button>
+</div>
+`;
+
+valueTypes.forEach(v=>{
+
+html += `
+<div class="border rounded-2xl p-3 mb-3 bg-slate-50">
+<div class="flex justify-between items-center mb-2">
+<span class="font-bold">${v.label}</span>
+
+<div class="flex gap-1">
+<button onclick="showExamples('${cat.key}','${v.key}',${i})" class="text-xs px-2 py-1 rounded-lg bg-yellow-100 border">예시</button>
+<button onclick="voiceInput('${cat.key}_${v.key}_${i}',this)" class="text-xs px-2 py-1 rounded-lg bg-sky-100 border">🎙️</button>
+</div>
+</div>
+
+<textarea id="${cat.key}_${v.key}_${i}" rows="2" class="w-full border rounded-xl p-2 mb-2" placeholder="${v.label} 설명"></textarea>
+
+<textarea id="${cat.key}_${v.key}_reason_${i}" rows="2" class="w-full border rounded-xl p-2" placeholder="왜냐하면 ~ 때문입니다."></textarea>
+
+<div id="example_${cat.key}_${v.key}_${i}" class="hidden mt-2 space-y-1"></div>
+</div>
+`;
+
+});
+
+html += `
+<div id="${cat.key}_count_${i}" class="font-bold text-sm text-red-500">
+입력된 가치: 0개
+</div>
+
+</div>
+`;
+}
+
+box.innerHTML = html;
+area.appendChild(box);
+
+});
+
+}
+
+function showExamples(cat,key,index){
+
+const area = document.getElementById(`example_${cat}_${key}_${index}`);
+
+if(!area.classList.contains('hidden')){
+area.classList.add('hidden');
+return;
+}
+
+area.innerHTML = examples[key].map(ex=>`
+<button onclick="insertExample('${cat}_${key}_reason_${index}','${ex.replace(/'/g,"\\'")}')" class="block w-full text-left border rounded-xl p-2 bg-white hover:bg-yellow-50 text-sm">
+${ex}
+</button>
+`).join('');
+
+area.classList.remove('hidden');
+}
+
+function insertExample(id,text){
+document.getElementById(id).value=text;
+updateCounts();
+}
+
+function updateCounts(){
+
+categories.forEach(cat=>{
+
+for(let i=0;i<4;i++){
+
+let count=0;
+
+valueTypes.forEach(v=>{
+const value=document.getElementById(`${cat.key}_${v.key}_${i}`).value.trim();
+const reason=document.getElementById(`${cat.key}_${v.key}_reason_${i}`).value.trim();
+
+if(value && reason){
+count++;
+}
+});
+
+const el=document.getElementById(`${cat.key}_count_${i}`);
+
+if(count>=2){
+el.innerHTML=`입력된 가치: ${count}개 ✅ 선정 가능`;
+el.className='font-bold text-sm text-emerald-600';
+}else{
+el.innerHTML=`입력된 가치: ${count}개 ⚠ 2개 이상 필요`;
+el.className='font-bold text-sm text-red-500';
+}
+
+}
+
+});
+
+}
+
+document.addEventListener('input',updateCounts);
+
+function getStudentNames(){
+return[
+document.getElementById('student1').value,
+document.getElementById('student2').value,
+document.getElementById('student3').value,
+document.getElementById('student4').value
+];
+}
+
+function makeScript(){
+
+updateCounts();
+
+const group=document.getElementById('groupName').value;
+const leader=document.getElementById('leaderName').value;
+const topic=document.getElementById('topic').value;
+
+document.getElementById('paperInfo').innerText=`${group} | ${topic}`;
+
+const students=getStudentNames();
+
+let script='';
+
+script += `
+<div class="scene">장면 1. 토의 시작</div>
+
+<div class="script-line"><span class="speaker">${leader}:</span> 지금부터 ${group}의 국가유산 선정 토의를 시작하겠습니다.</div>
+
+<div class="script-line"><span class="speaker">${leader}:</span> 오늘의 주제는 ${topic}입니다.</div>
+`;
+
+categories.forEach((cat,idx)=>{
+
+script += `<div class="scene">장면 ${idx+2}. ${cat.label} 소개하기</div>`;
+
+for(let i=0;i<4;i++){
+
+const heritage=document.getElementById(`${cat.key}_name_${i}`).value.trim();
+
+if(!heritage) continue;
+
+let lines='';
+
+valueTypes.forEach(v=>{
+
+const value=document.getElementById(`${cat.key}_${v.key}_${i}`).value.trim();
+const reason=document.getElementById(`${cat.key}_${v.key}_reason_${i}`).value.trim();
+
+if(value && reason){
+lines += `${v.label}이 있습니다. ${value} 왜냐하면 ${reason} `;
+}
+
+});
+
+script += `
+<div class="script-line">
+<span class="speaker">${students[i]}:</span>
+제가 조사한 ${cat.label}은(는) <b>${heritage}</b>입니다. ${lines}
+</div>
+`;
+
+}
+
+script += `
+<div class="script-line">
+<span class="speaker">${leader}:</span>
+친구들의 의견을 잘 들었습니다. 이제 우리 모둠이 소개할 ${cat.label}을 선정해 봅시다.
+</div>
+`;
+
+});
+
+script += `
+<div class="scene">장면 5. 토의 마무리</div>
+
+<div class="script-line">
+<span class="speaker">${leader}:</span>
+오늘 우리는 국가유산의 다양한 가치와 근거를 살펴보며 돌아가며 말하기 토의를 했습니다.
+</div>
+`;
+
+document.getElementById('scriptOutput').innerHTML=script;
+
+window.scrollTo({
+top:document.getElementById('paper').offsetTop,
+behavior:'smooth'
+});
+
+}
+
+
+function saveScriptHTML(){
+
+makeScript();
+
+const content = document.getElementById('paper').outerHTML;
+
+const fullHTML = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>국가유산 역할극 대본</title>
+<style>
+body{
+font-family:'Noto Sans KR',sans-serif;
+background:white;
+padding:20px;
+}
+.a4{
+width:210mm;
+min-height:297mm;
+margin:auto;
+background:white;
+}
+.script-line{
+border-left:4px solid #60a5fa;
+padding:10px;
+margin:8px 0;
+border-radius:12px;
+background:#f8fafc;
+line-height:1.7;
+}
+.scene{
+display:inline-block;
+padding:6px 14px;
+border-radius:999px;
+background:#dbeafe;
+color:#1e3a8a;
+font-weight:900;
+margin-top:20px;
+margin-bottom:8px;
+}
+.speaker{
+font-weight:900;
+color:#2563eb;
+}
+</style>
+</head>
+<body>${content}</body>
+</html>
+`;
+
+const blob = new Blob([fullHTML], {type:'text/html'});
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = '국가유산_역할극대본.html';
+a.click();
+}
+
+
+function savePDF(){
+
+makeScript();
+
+setTimeout(function(){
+
+const element = document.getElementById('paper');
+const groupName = document.getElementById('groupName').value.trim() || '모둠';
+
+const opt = {
+margin: [0, 0, 0, 0],
+filename: groupName + '_국가유산_역할극대본.pdf',
+image: { type: 'jpeg', quality: 0.98 },
+html2canvas: {
+scale: 2,
+useCORS: true,
+allowTaint: true,
+backgroundColor: '#ffffff',
+scrollY: 0
+},
+jsPDF: {
+unit: 'mm',
+format: 'a4',
+orientation: 'portrait'
+},
+pagebreak: {
+mode: ['css', 'legacy'],
+avoid: ['.script-line']
+}
+};
+
+html2pdf().set(opt).from(element).save();
+
+}, 300);
+
+}
+
+
+buildInputs();
+
+</script>
+
+</body>
+</html>
