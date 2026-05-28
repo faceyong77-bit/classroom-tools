@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>좌동의 미래 국가유산 후보 선정 프로그램</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@700&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans KR', 'Jua', sans-serif; 
+            background-color: #f1f5f9; 
+            color: #1e293b; 
+            overflow-x: hidden;
+            font-weight: 700;
+        }
+        
+        h1, h2, h3, .font-jua { font-family: 'Jua', sans-serif; font-weight: 700; }
+        
+        .step-card { display: none; }
+        .step-card.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .progress-dot { width: 14px; height: 14px; border-radius: 50%; background: #cbd5e1; transition: all 0.3s; }
+        .progress-dot.active { background: #6366f1; transform: scale(1.4); box-shadow: 0 0 10px rgba(99, 102, 241, 0.4); }
+        
+        .question-container { position: relative; width: 100%; }
+        .question-input {
+            width: 100%; background: #fff; border: 2px solid #e2e8f0; border-radius: 1.25rem;
+            padding: 14px 18px; padding-right: 50px; font-size: 1.1rem; outline: none; transition: all 0.2s;
+            font-weight: 700;
+        }
+        .question-input:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        .stt-btn {
+            position: absolute; right: 12px; bottom: 25px;
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #f8fafc; border: 2px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; z-index: 10;
+        }
+        .stt-btn:hover { background: #e0e7ff; border-color: #6366f1; transform: scale(1.1); }
+        .stt-btn.recording { 
+            background: #ef4444; border-color: #dc2626; color: white;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .check-indicator { 
+            font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; 
+            font-weight: 900; border: 2px solid #e2e8f0; color: #94a3b8; 
+            transition: all 0.3s; background: #fff;
+        }
+        .check-indicator.passed { background: #dcfce7; color: #16a34a; border-color: #bbf7d0; box-shadow: 0 2px 4px rgba(22, 163, 74, 0.1); }
+        .check-indicator.failed { background: #fee2e2; color: #ef4444; border-color: #fecaca; }
+
+        .vote-dot {
+            width: 38px; height: 38px; border-radius: 50%; border: 2px solid #e2e8f0;
+            background: white; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; color: #94a3b8;
+        }
+        .vote-dot.active-ok { background: #3b82f6 !important; border-color: #1d4ed8 !important; color: white !important; transform: scale(1.15); box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
+        .vote-dot.active-no { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; transform: scale(1.15); box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3); }
+        
+        .area-disabled { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        #heritage-img-preview { width: 100%; height: 200px; object-fit: cover; border-radius: 1rem; }
+        
+        .certification-badge {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.95) 100%);
+            box-shadow: 0 5px 15px -3px rgba(79, 70, 229, 0.4); border: 3px solid white;
+            font-weight: 700;
+        }
+        .guide-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 15px; font-weight: 700; }
+
+        #loading-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        #capture-area { background-color: white !important; width: 850px !important; margin: 0 auto !important; padding: 30px !important; }
+        .pdf-section { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+        p, span, label, input, textarea, button { font-weight: 700 !important; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="alertModal" class="fixed inset-0 z-[100] hidden items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center border-t-8 border-indigo-500">
+            <div class="text-5xl mb-4">💡</div>
+            <h3 class="text-2xl font-jua text-slate-800 mb-2">알림</h3>
+            <p id="alertMsg" class="text-slate-600 mb-8 break-keep"></p>
+            <button onclick="closeAlert()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-colors text-xl">확인</button>
+        </div>
+    </div>
+
+    <div id="loading-mask">
+        <div class="bg-white p-12 rounded-[3.5rem] text-center shadow-2xl border-4 border-indigo-100">
+            <div class="animate-spin rounded-full h-14 w-14 border-b-4 border-indigo-600 mx-auto mb-6"></div>
+            <p class="text-2xl font-jua text-gray-800">심사 결과서를 만들고 있습니다...</p>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-10 no-print">
+            <h1 class="text-4xl text-indigo-700 mb-6 font-jua">🏛️ 좌동의 미래 국가유산 후보 선정 프로그램</h1>
+            <div class="flex justify-center items-center gap-4 mb-4">
+                <div class="flex flex-col items-center gap-2"><div class="progress-dot active" id="dot1"></div><span class="text-[11px] font-bold text-slate-500">위원회 등록</span></div>
+                <div class="h-0.5 w-12 bg-slate-200"></div>
+                <div class="flex flex-col items-center gap-2"><div class="progress-dot" id="dot2"></div><span class="text-[11px] font-bold text-slate-500">질문 만들기</span></div>
+                <div class="h-0.5 w-12 bg-slate-200"></div>
+                <div class="flex flex-col items-center gap-2"><div class="progress-dot" id="dot3"></div><span class="text-[11px] font-bold text-slate-500">선정 심사</span></div>
+                <div class="h-0.5 w-12 bg-slate-200"></div>
+                <div class="flex flex-col items-center gap-2"><div class="progress-dot" id="dot4"></div><span class="text-[11px] font-bold text-slate-500">후보 결정</span></div>
+            </div>
+            <div class="inline-block bg-indigo-50 px-6 py-1.5 rounded-full border border-indigo-100">
+                <p id="stepLabel" class="text-indigo-600 font-bold text-sm font-jua">좌산 국가유산위원회 등록</p>
+            </div>
+        </header>
+
+        <!-- 0단계 -->
+        <div class="step-card active bg-white rounded-3xl shadow-xl p-8 border-2 border-indigo-100 max-w-2xl mx-auto" id="step0">
+            <div class="text-center mb-8"><div class="text-5xl mb-4">🧑‍🚀</div><h2 class="text-3xl font-jua text-slate-700 font-bold">좌산 국가유산위원회 등록</h2></div>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-base font-bold text-slate-600 mb-2 ml-1">👥 모둠 이름</label>
+                    <input type="text" id="teamName" oninput="autoFillGroupMembers()" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 outline-none text-center text-2xl font-bold" placeholder="예: 1 또는 1모둠">
+                </div>
+                <div>
+                    <label class="block text-base font-bold text-slate-600 mb-2 ml-1">🧑‍🚀 심사 위원들 (대원 이름)</label>
+                    <div class="question-container">
+                        <input type="text" id="userNames" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 outline-none text-center text-2xl font-bold" placeholder="예: 홍길동, 김철수, 이영희">
+                        <button class="stt-btn" style="bottom:12px;" onclick="runSTT('userNames')">🎤</button>
+                    </div>
+                </div>
+                <button onclick="goToStep(1)" class="w-full bg-indigo-600 text-white font-jua text-4xl py-6 rounded-2xl shadow-lg transition-all active:scale-95">질문 만들기</button>
+            </div>
+        </div>
+
+        <!-- 1단계 -->
+        <div class="step-card bg-white rounded-3xl shadow-xl p-8 border-2 border-amber-100" id="step1">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-jua text-amber-700 mb-1 flex items-center gap-2 font-bold">🧭 [활동 1] 좌동의 미래 국가유산 후보 선정 질문 만들기</h2>
+                    <p class="text-slate-600 text-sm font-bold italic">마이크 버튼을 누르면 목소리로 질문을 입력할 수 있습니다!</p>
+                </div>
+                <button onclick="toggleExamples()" class="bg-amber-100 text-amber-700 px-5 py-2.5 rounded-2xl font-bold text-sm border border-amber-200 shadow-sm hover:bg-amber-200 transition-all">💡 질문 예시 보기</button>
+            </div>
+
+            <div class="guide-box mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-[14px] leading-snug shadow-inner">
+                <div class="flex items-start gap-2"><span class="text-amber-500 font-bold">▣</span><p class="text-amber-900 font-bold font-bold">4대 가치를 잘 반영하였나요?</p></div>
+                <div class="flex items-start gap-2"><span class="text-amber-500 font-bold">▣</span><p class="text-amber-900 font-bold font-bold">질문에 ‘왜?’, ‘어떻게?’, ‘어떤?’이 들어가 있나요?</p></div>
+                <div class="flex items-start gap-2"><span class="text-amber-500 font-bold">▣</span><p class="text-amber-900 font-bold font-bold">한 번에 한 가지 내용만 묻고 있나요?</p></div>
+                <div class="flex items-start gap-2"><span class="text-amber-500 font-bold">▣</span><p class="text-amber-900 font-bold font-bold">생각하며 답할 수 있는 깊이 있는 질문인가요?</p></div>
+            </div>
+
+            <div id="exampleBox" class="hidden opacity-0 max-h-0 overflow-hidden bg-slate-50 rounded-3xl border border-slate-200 mb-8 p-0 transition-all duration-300">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div><p class="font-bold text-amber-600 underline">📜 역사적 가치</p>이 유산에는 무슨 옛날이야기가 담겨 있을까?</div>
+                        <div><p class="font-bold text-blue-600 underline">⚙️ 과학적 가치</p>조상들은 어떤 지혜로 이 유산을 만들었을까?</div>
+                        <div><p class="font-bold text-rose-600 underline">🎨 예술적 가치</p>이 유산은 왜 사람들에게 아름답게 보일까?</div>
+                        <div><p class="font-bold text-emerald-600 underline">🌿 생태·환경적 가치</p>이 유산은 자연과 어떻게 조화를 이룰까?</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-amber-50/50 p-5 rounded-3xl border border-amber-100 flex flex-col">
+                    <label class="font-jua text-amber-800 mb-2 font-bold text-lg italic font-bold">📜 역사적 가치(옛사람의 삶)</label>
+                    <div class="question-container">
+                        <textarea id="q1" oninput="checkSingleQuestion(1)" class="question-input h-24 mb-3" placeholder="질문을 입력하세요..."></textarea>
+                        <button class="stt-btn" id="btn_stt_q1" onclick="runSTT('q1')">🎤</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="q1_indicators">
+                        <span class="check-indicator" id="q1_i1">의문사</span><span class="check-indicator" id="q1_i2">한가지 질문</span><span class="check-indicator" id="q1_i3">생각하는 힘</span><span class="check-indicator" id="q1_i4">가치 반영</span>
+                    </div>
+                </div>
+                <div class="bg-blue-50/50 p-5 rounded-3xl border border-blue-100 flex flex-col">
+                    <label class="font-jua text-blue-800 mb-2 font-bold text-lg italic font-bold">⚙️ 과학적 가치(슬기로움)</label>
+                    <div class="question-container">
+                        <textarea id="q2" oninput="checkSingleQuestion(2)" class="question-input h-24 mb-3" placeholder="질문을 입력하세요..."></textarea>
+                        <button class="stt-btn" id="btn_stt_q2" onclick="runSTT('q2')">🎤</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="q2_indicators">
+                        <span class="check-indicator" id="q2_i1">의문사</span><span class="check-indicator" id="q2_i2">한가지 질문</span><span class="check-indicator" id="q2_i3">생각하는 힘</span><span class="check-indicator" id="q2_i4">가치 반영</span>
+                    </div>
+                </div>
+                <div class="bg-rose-50/50 p-5 rounded-3xl border border-rose-100 flex flex-col">
+                    <label class="font-jua text-rose-800 mb-2 font-bold text-lg italic font-bold">🎨 예술적 가치(아름다움)</label>
+                    <div class="question-container">
+                        <textarea id="q3" oninput="checkSingleQuestion(3)" class="question-input h-24 mb-3" placeholder="질문을 입력하세요..."></textarea>
+                        <button class="stt-btn" id="btn_stt_q3" onclick="runSTT('q3')">🎤</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="q3_indicators">
+                        <span class="check-indicator" id="q3_i1">의문사</span><span class="check-indicator" id="q3_i2">한가지 질문</span><span class="check-indicator" id="q3_i3">생각하는 힘</span><span class="check-indicator" id="q3_i4">가치 반영</span>
+                    </div>
+                </div>
+                <div class="bg-emerald-50/50 p-5 rounded-3xl border border-emerald-100 flex flex-col">
+                    <label class="font-jua text-emerald-800 mb-2 font-bold text-lg italic font-bold">🌿 생태·환경적 가치(자연과의 어울림)</label>
+                    <div class="question-container">
+                        <textarea id="q4" oninput="checkSingleQuestion(4)" class="question-input h-24 mb-3" placeholder="질문을 입력하세요..."></textarea>
+                        <button class="stt-btn" id="btn_stt_q4" onclick="runSTT('q4')">🎤</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2" id="q4_indicators">
+                        <span class="check-indicator" id="q4_i1">의문사</span><span class="check-indicator" id="q4_i2">한가지 질문</span><span class="check-indicator" id="q4_i3">생각하는 힘</span><span class="check-indicator" id="q4_i4">가치 반영</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="goToStep(0)" class="flex-1 bg-slate-100 text-slate-700 font-jua text-2xl py-5 rounded-2xl hover:bg-slate-200">이전</button>
+                <button id="nextBtnStep1" onclick="goToStep('heritage_input')" class="flex-[2] bg-slate-300 text-slate-500 font-jua text-3xl py-5 rounded-2xl cursor-not-allowed transition-all" disabled>심사 기준을 검토 중입니다...</button>
+            </div>
+        </div>
+
+        <!-- 1.5단계 -->
+        <div class="step-card bg-white rounded-3xl shadow-xl p-8 border-2 border-indigo-200 max-w-4xl mx-auto" id="step_heritage">
+            <h2 class="text-3xl font-jua text-indigo-700 mb-8 flex items-center gap-2 font-bold font-bold">🏛️ 심사할 후보 유산 등록</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-lg font-bold text-slate-700 mb-2 font-bold">🔍 유산 이름</label>
+                        <div class="question-container">
+                            <input type="text" id="heritageName" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 outline-none font-bold text-2xl font-bold" placeholder="유산 이름을 적어주세요">
+                            <button class="stt-btn" style="bottom:10px;" onclick="runSTT('heritageName')">🎤</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-lg font-bold text-slate-700 mb-2 font-bold">📸 사진 등록</label>
+                        <input type="file" id="imgInput" accept="image/*" onchange="previewImage(this)" class="w-full p-2 border-2 border-dashed border-indigo-200 font-bold text-sm bg-white cursor-pointer font-bold">
+                    </div>
+                </div>
+                <div class="space-y-4 text-center">
+                    <div id="image-preview-box" class="w-full h-[220px] bg-slate-100 rounded-[2rem] flex items-center justify-center overflow-hidden border-2 border-slate-50 shadow-inner">
+                        <img id="heritage-img-preview" src="" class="hidden">
+                        <span id="img-placeholder" class="text-slate-400 font-jua text-xl">사진 미리보기</span>
+                    </div>
+                    <button onclick="saveQuestionsAndStart()" class="w-full bg-indigo-600 text-white font-jua text-4xl py-6 rounded-2xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all font-bold">심사 시작하기 ➔</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2단계 -->
+        <div class="step-card bg-white rounded-3xl shadow-xl p-8 border-2 border-blue-100" id="step2">
+            <div class="flex justify-between items-start mb-8">
+                <h2 class="text-3xl font-jua text-blue-700 font-bold font-bold">⚖️ [활동 2] 좌동의 미래 국가유산 후보 선정 심사</h2>
+                <div class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-lg shadow-md font-bold">현재 투표 완료: <span id="totalVoteCount">0</span>표</div>
+            </div>
+            
+            <p class="bg-indigo-50 text-indigo-800 p-4 rounded-2xl text-base mb-8 font-bold text-center italic border border-indigo-100 font-bold">※ 영역당 위원 과반수(3표 이상)가 동의해야 해당 가치가 인정됩니다.</p>
+            <div class="space-y-6" id="evaluationList"></div>
+
+            <div id="checkResult" class="hidden my-10 p-10 rounded-[3rem] text-center border-4">
+                <p id="resultMsg" class="text-3xl font-jua mb-6"></p>
+                <div class="flex gap-4 justify-center" id="resultButtons"></div>
+            </div>
+
+            <div class="flex gap-4 no-print mt-10" id="checkScoreArea">
+                <button onclick="goToStep(1)" class="flex-1 bg-slate-100 text-slate-700 font-jua text-2xl py-5 rounded-2xl hover:bg-slate-200 font-bold">질문 수정</button>
+                <button id="checkScoreBtn" onclick="evaluateStage1()" class="flex-[2] bg-slate-300 text-slate-500 font-jua text-3xl py-5 rounded-2xl cursor-not-allowed font-bold" disabled>토의를 충분히 진행해 주세요 (투표 8개 이상)</button>
+            </div>
+        </div>
+
+        <!-- 3단계 -->
+        <div class="step-card bg-white rounded-3xl shadow-xl p-8 border-2 border-indigo-200" id="step3">
+            <h2 class="text-3xl font-jua text-indigo-700 mb-8 font-bold text-center font-bold">⏳ 3단계: 미래 전달 가치 심사</h2>
+            <div class="bg-indigo-50 p-10 rounded-[3rem] border-2 border-indigo-100 text-center mb-10 shadow-inner">
+                <div class="mb-8">
+                    <p class="text-2xl font-bold text-indigo-600 mb-2 font-jua font-bold">"이 유산 미래 사람들에게 무엇을 전달할 수 있을까요?"</p>
+                    <p class="text-4xl font-jua text-indigo-950 break-keep font-bold">"미래 사람들도 이 유산을 남기고 싶을까요?"</p>
+                </div>
+                <div class="flex justify-center gap-10">
+                    <div class="text-center">
+                        <p class="font-bold text-blue-600 mb-3 font-jua text-2xl font-bold">OK</p>
+                        <div class="flex gap-2" id="futureOkDots"></div>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-red-600 mb-3 font-jua text-2xl font-bold">NO</p>
+                        <div class="flex gap-2" id="futureNoDots"></div>
+                    </div>
+                </div>
+                <p class="text-sm text-indigo-500 mt-6 font-bold italic bg-white inline-block px-4 py-1 rounded-full border border-indigo-100 font-bold">※ 위원 중 4인 이상 찬성 시 최종 후보로 추천됩니다.</p>
+            </div>
+
+            <div class="space-y-4 mb-10">
+                <label class="block text-xl font-bold text-indigo-800 ml-2 font-jua italic font-bold">💡 미래사람들에게 전달하고 싶은 이유</label>
+                <div class="question-container">
+                    <textarea id="finalReason" class="w-full p-6 rounded-[2rem] border-2 border-indigo-100 focus:border-indigo-400 outline-none h-44 bg-white shadow-sm text-xl font-bold font-bold" placeholder="역사적 가치(옛사람 삶), 과학적 가치(슬기로움), 예술적 가치(아름다움), 생태·환경적 가치(자연과의 어울림) 측면에서 골고루 생각해봅시다."></textarea>
+                    <button class="stt-btn" style="bottom:20px; right:20px;" onclick="runSTT('finalReason')">🎤</button>
+                </div>
+            </div>
+
+            <div class="flex gap-4 no-print">
+                <button onclick="goToStep(2)" class="flex-1 bg-slate-100 text-slate-600 font-jua text-xl py-5 rounded-2xl hover:bg-slate-200 transition-colors font-bold">이전</button>
+                <button onclick="goToStep(4)" class="flex-[2] bg-indigo-600 text-white font-jua text-3xl py-5 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all active:scale-95 font-bold">최종 후보 결정 확인 ➔</button>
+            </div>
+        </div>
+
+        <!-- 4단계 -->
+        <div class="step-card bg-white rounded-3xl shadow-2xl p-10 border-t-[16px] border-indigo-600" id="step4">
+            <div id="capture-area">
+                <div class="text-center border-b-4 border-indigo-100 pb-6 mb-8 pdf-section">
+                    <h2 class="text-5xl font-jua text-indigo-900 mb-4 underline underline-offset-8 decoration-indigo-200 font-bold">좌동의 미래 국가유산 후보 결정</h2>
+                    <div class="flex justify-center gap-10 text-2xl font-bold text-slate-600">
+                        <span>모둠: <span id="resTeam" class="text-indigo-600 px-3 border-b-2 border-indigo-100 font-bold"></span></span>
+                        <span>위원: <span id="resUsers" class="text-indigo-600 px-3 border-b-2 border-indigo-100 font-bold"></span></span>
+                        <span>날짜: <span id="resDate" class="text-indigo-600 px-3 border-b-2 border-indigo-100 font-bold"></span></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                    <div class="space-y-8 pdf-section">
+                        <div class="bg-indigo-50/50 p-8 rounded-[3rem] border border-indigo-100 shadow-sm">
+                            <h3 class="text-xl font-jua text-indigo-700 mb-4 font-bold font-bold">🏛️ 심사 후보 유산</h3>
+                            <div class="flex items-center gap-8">
+                                <div class="w-40 h-40 rounded-3xl overflow-hidden bg-white shadow-md border-4 border-white shrink-0">
+                                    <img id="resImg" class="w-full h-full object-cover">
+                                </div>
+                                <div class="text-4xl font-jua text-indigo-950 font-bold font-bold" id="resName"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-8 rounded-[3rem] border-4 border-indigo-50 text-center relative shadow-lg">
+                            <h3 class="text-xl font-jua text-indigo-700 mb-4 font-bold font-bold">📊 심사 가치 분석 차트</h3>
+                            <div class="w-full max-w-[280px] mx-auto relative flex flex-col items-center">
+                                <canvas id="resChart"></canvas>
+                                <div id="resBadge" class="hidden mt-6 items-center justify-center pointer-events-none">
+                                    <div class="certification-badge text-white font-jua text-2xl px-8 py-4 rounded-full transform rotate-[-3deg] border-4 border-white shadow-xl font-bold font-bold">✨ 미래 국가유산 추천 ✨</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6 pdf-section">
+                        <div class="bg-slate-50 p-8 rounded-[3rem] border-2 border-slate-100 shadow-sm">
+                            <h3 class="text-2xl font-jua text-slate-800 mb-6 border-b-2 border-slate-200 pb-2 font-bold font-bold">선정 근거</h3>
+                            <p id="resReason" class="text-xl leading-relaxed text-slate-700 whitespace-pre-wrap italic font-bold font-bold"></p>
+                        </div>
+                        
+                        <div class="bg-indigo-50 p-8 rounded-[3rem] border-2 border-indigo-200 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-jua font-bold">📜</div>
+                            <h3 class="text-2xl font-jua text-indigo-800 mb-6 border-b-2 border-indigo-200 pb-2 font-bold font-bold">최종 결정</h3>
+                            <div id="resChoiceDisplay" class="text-2xl leading-relaxed text-indigo-950 break-keep font-bold font-bold"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 no-print mt-10">
+                <button onclick="goToStep(3)" class="flex-1 bg-slate-100 text-slate-700 font-jua text-xl py-5 rounded-2xl hover:bg-slate-200 font-bold">내용 수정</button>
+                <button onclick="handleSavePDF()" class="flex-[3] bg-indigo-600 text-white font-jua text-2xl py-6 rounded-3xl hover:bg-indigo-700 shadow-xl border-b-8 border-indigo-800 transition-all active:translate-y-1 active:border-b-4 font-bold font-bold">💾 심사 결과서 PDF 저장하기</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+
+        // --- 모둠 번호 입력 시 심사 위원 이름 자동 생성 ---
+        const predefinedGroups = {
+            '1': ['황유빈', '배준이', '전민주', '김채은'],
+            '2': ['임시온', '김가빈', '김지민', '정서호'],
+            '3': ['조유나', '공다희', '김소민', '김지율'],
+            '4': ['전승찬', '류호성', '류재승', '손시온'],
+            '5': ['천준영', '이사랑', '윤영빈'],
+            '6': ['이나빈', '최설진', '문연우', '이하온'],
+            '7': ['김리안', '이마로', '최다윤', '김리오']
+        };
+
+        function autoFillGroupMembers() {
+            const teamInput = document.getElementById('teamName');
+            const userInput = document.getElementById('userNames');
+            const groupNo = teamInput.value.replace(/[^0-9]/g, '');
+
+            if (predefinedGroups[groupNo]) {
+                userInput.value = predefinedGroups[groupNo].join(', ');
+                if (teamInput.value.trim() === groupNo) {
+                    teamInput.value = groupNo + '모둠';
+                    teamInput.setSelectionRange(teamInput.value.length, teamInput.value.length);
+                }
+            }
+        }
+
+        let questionsData = [];
+        let voteResults = {};
+        let futureVotes = { ok: Array(5).fill(false), no: Array(5).fill(false) };
+        let skippedCategories = { 1: false, 2: false, 3: false, 4: false };
+        let myChart = null;
+
+        // --- 🎤 강화된 음성 인식 (STT) 기능 ---
+        function runSTT(targetId) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return showCustomAlert("이 브라우저는 음성 인식을 지원하지 않습니다.");
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            const btn = event.currentTarget;
+            btn.classList.add('recording');
+
+            recognition.onresult = (event) => {
+                let transcript = event.results[0][0].transcript.trim();
+                const target = document.getElementById(targetId);
+                
+                // 🌟 질문 로직 강화: 어미 확인 후 물음표 자동 보정 🌟
+                if (targetId.startsWith('q')) {
+                    const endings = ['까', '요', '죠', '니', '가', '어'];
+                    const lastChar = transcript.charAt(transcript.length - 1);
+                    if (!transcript.endsWith('?') && endings.includes(lastChar)) {
+                        transcript += '?';
+                    }
+                }
+
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                    target.value = (target.value + " " + transcript).trim();
+                    if(targetId.startsWith('q')) checkSingleQuestion(targetId.replace('q', ''));
+                }
+            };
+
+            recognition.onspeechend = () => { recognition.stop(); btn.classList.remove('recording'); };
+            recognition.onerror = () => { btn.classList.remove('recording'); };
+            recognition.start();
+        }
+
+        function showCustomAlert(msg) {
+            document.getElementById('alertMsg').innerText = msg;
+            document.getElementById('alertModal').classList.remove('hidden');
+            document.getElementById('alertModal').classList.add('flex');
+        }
+        function closeAlert() {
+            document.getElementById('alertModal').classList.add('hidden');
+            document.getElementById('alertModal').classList.remove('flex');
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previews = document.querySelectorAll('#heritage-img-preview, #resImg');
+                    previews.forEach(p => { p.src = e.target.result; p.classList.remove('hidden'); });
+                    document.getElementById('img-placeholder').classList.add('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function goToStep(n) {
+            if (n === 1) {
+                const team = document.getElementById('teamName').value.trim();
+                const users = document.getElementById('userNames').value.trim();
+                if (!team || !users) return showCustomAlert("모둠 정보와 대원 이름을 입력해 주세요!");
+            }
+            if (n === 'heritage_input') n = '_heritage';
+
+            document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+            const target = document.getElementById('step' + n);
+            if (target) target.classList.add('active');
+            
+            const mapping = {0: 1, 1: 1, '_heritage': 2, 2: 2, 3: 3, 4: 4};
+            for(let i=1; i<=4; i++) document.getElementById('dot' + i).classList.remove('active');
+            if(document.getElementById('dot' + mapping[n])) document.getElementById('dot' + mapping[n]).classList.add('active');
+
+            const labels = {0: "좌산 국가유산위원회 등록", 1: "좌동의 미래 국가유산 후보 선정 질문 만들기", '_heritage': "심사 후보 유산 등록", 2: "좌동의 미래 국가유산 후보 선정 심사", 3: "미래 전달 가치 심사", 4: "좌동의 미래 국가유산 후보 결정"};
+            document.getElementById('stepLabel').innerText = labels[n] || "진행 중";
+            window.scrollTo(0, 0);
+
+            if(n === 4) renderFinal();
+            if(n === 3) initFutureVotes();
+        }
+
+        function checkSingleQuestion(id) {
+            const q = document.getElementById('q' + id).value.trim();
+            const inds = { qMark: document.getElementById(`q${id}_i1`), oneThing: document.getElementById(`q${id}_i2`), depth: document.getElementById(`q${id}_i3`), category: document.getElementById(`q${id}_i4`) };
+            
+            const syllableCount = (q.match(/[가-힣]/g) || []).length;
+            const jamoCount = (q.match(/[ㄱ-ㅎㅏ-ㅣ]/g) || []).length;
+            const isHangulProper = syllableCount > 0 && (syllableCount / (syllableCount + jamoCount)) > 0.9;
+            const words = q.split(/\s+/);
+            const isSingle = words.length >= 2 && words.length <= 15 && !q.includes('그리고') && !q.includes('동시에');
+
+            // 🌟 판정 로직 수정: 물음표가 없어도 질문형 어미면 통과 🌟
+            const hasQMark = q.includes('?');
+            const hasQEnding = ['까', '요', '죠'].some(e => q.endsWith(e));
+            const hasQWord = ['왜', '어떻게', '어떤', '까'].some(w => q.includes(w));
+
+            inds.qMark.className = `check-indicator ${hasQWord || hasQMark ? 'passed' : 'failed'}`;
+            inds.oneThing.className = `check-indicator ${isHangulProper && isSingle ? 'passed' : 'failed'}`;
+            
+            // 🌟 사고력 지표 유연화: 길이 + (물음표 또는 질문형 어미) 🌟
+            inds.depth.className = `check-indicator ${q.length >= 8 && (hasQMark || hasQEnding) ? 'passed' : 'failed'}`;
+            
+            const keywords = [['옛날', '역사', '이야기', '조상', '과거', '삶', '생활'], ['과학', '원리', '지혜', '기술', '슬기', '방법'], ['아름', '모양', '색', '예술', '매력', '디자인', '아름다움'], ['자연', '환경', '어울', '보존', '생태', '지구', '자연']];
+            inds.category.className = `check-indicator ${keywords[id-1].some(kw => q.includes(kw)) ? 'passed' : 'failed'}`;
+            validateAllQuestions();
+        }
+
+        function validateAllQuestions() {
+            let allPassed = true;
+            for(let i=1; i<=4; i++) {
+                const checks = document.querySelectorAll(`#q${i}_indicators .check-indicator`);
+                checks.forEach(ind => { if(!ind.classList.contains('passed')) allPassed = false; });
+            }
+            const btn = document.getElementById('nextBtnStep1');
+            if (allPassed) { btn.className = "flex-[2] bg-amber-500 text-white font-jua text-3xl py-5 rounded-2xl shadow-lg active:scale-95 transition-all font-bold"; btn.disabled = false; btn.innerText = "심사 유산 정하기 ➔"; } 
+            else { btn.className = "flex-[2] bg-slate-300 text-slate-500 font-jua text-3xl py-5 rounded-2xl cursor-not-allowed transition-all font-bold"; btn.disabled = true; btn.innerText = "심사 기준을 검토 중입니다..."; }
+        }
+
+        function saveQuestionsAndStart() {
+            const hName = document.getElementById('heritageName').value.trim();
+            if(!hName) return showCustomAlert("심사할 유산의 이름을 입력해 주세요!");
+            questionsData = [1, 2, 3, 4].map(i => document.getElementById('q' + i).value.trim());
+            const container = document.getElementById('evaluationList');
+            container.innerHTML = '';
+            const titles = ['📜 역사적 가치(옛사람 삶)', '⚙️ 과학적 가치(슬기로움)', '🎨 예술적 가치(아름다움)', '🌿 생태·환경적 가치(자연과의 어울림)'];
+            const bgClasses = ['bg-amber-50', 'bg-blue-50', 'bg-rose-50', 'bg-emerald-50'];
+            titles.forEach((title, catIdx) => {
+                const realIdx = catIdx + 1;
+                const qId = `q_row_${realIdx}`;
+                voteResults[qId] = { ok: Array(5).fill(false), no: Array(5).fill(false) };
+                const div = document.createElement('div');
+                div.className = `${bgClasses[catIdx]} p-8 rounded-[2rem] border-2 border-white shadow-sm flex flex-col gap-6 relative transition-all`;
+                div.innerHTML = `<div class="flex justify-between items-center border-b border-white/50 pb-4"><h3 class="text-2xl font-jua text-slate-700 font-bold font-bold">${title}</h3><label class="flex items-center gap-2 cursor-pointer bg-white/50 px-4 py-1.5 rounded-full border border-white hover:bg-white transition-all"><input type="checkbox" onchange="toggleCategorySkip(${realIdx}, this)" class="w-5 h-5 accent-indigo-600 font-bold"><span class="text-sm font-bold text-slate-600 italic font-bold">해당 없음(Skip)</span></label></div><div class="flex flex-col md:flex-row md:items-center justify-between gap-4 font-bold" id="vote_area_${realIdx}"><p class="text-xl font-bold text-slate-800 flex-1 break-keep leading-tight font-bold">${questionsData[catIdx]}</p><div class="flex gap-6 items-center shrink-0"><div class="flex flex-col items-center"><span class="text-xs font-bold text-blue-500 mb-1 font-jua font-bold">OK</span><div class="flex gap-1">${[0,1,2,3,4].map(i => `<div class="vote-dot" id="dot_ok_${qId}_${i}" onclick="toggleVote('${qId}', 'ok', ${i})">${i+1}</div>`).join('')}</div></div><div class="flex flex-col items-center"><span class="text-xs font-bold text-red-500 mb-1 font-jua font-bold">NO</span><div class="flex gap-1">${[0,1,2,3,4].map(i => `<div class="vote-dot" id="dot_no_${qId}_${i}" onclick="toggleVote('${qId}', 'no', ${i})">${i+1}</div>`).join('')}</div></div></div></div>`;
+                container.appendChild(div);
+            });
+            goToStep(2);
+        }
+
+        function toggleCategorySkip(catIdx, checkbox) {
+            skippedCategories[catIdx] = checkbox.checked;
+            const voteArea = document.getElementById(`vote_area_${catIdx}`);
+            if(checkbox.checked) voteArea.classList.add('area-disabled');
+            else voteArea.classList.remove('area-disabled');
+            updateVoteValidation();
+        }
+
+        function toggleVote(qId, type, memberIdx) {
+            voteResults[qId][type][memberIdx] = !voteResults[qId][type][memberIdx];
+            document.getElementById(`dot_${type}_${qId}_${memberIdx}`).classList.toggle(`active-${type}`);
+            updateVoteValidation();
+        }
+
+        function updateVoteValidation() {
+            let total = 0;
+            Object.keys(voteResults).forEach(qId => {
+                const catIdx = qId.split('_')[2];
+                if(!skippedCategories[catIdx]) total += voteResults[qId].ok.filter(v => v).length + voteResults[qId].no.filter(v => v).length;
+            });
+            document.getElementById('totalVoteCount').innerText = total;
+            const btn = document.getElementById('checkScoreBtn');
+            if (total >= 8) { btn.className = "flex-[2] bg-blue-600 text-white font-jua text-3xl py-5 rounded-2xl shadow-lg active:scale-95 transition-all font-bold"; btn.disabled = false; btn.innerText = "심사 결과 확인하기"; }
+            else { btn.className = "flex-[2] bg-slate-300 text-slate-500 font-jua text-3xl py-5 rounded-2xl cursor-not-allowed transition-all font-bold"; btn.disabled = true; btn.innerText = `토의를 충분히 진행해 주세요 (${total}/8개)`; }
+        }
+
+        function evaluateStage1() {
+            let activeCatCount = 0;
+            let majorityOkCatCount = 0;
+            for(let i=1; i<=4; i++) { if(!skippedCategories[i]) { activeCatCount++; if (voteResults[`q_row_${i}`].ok.filter(v=>v).length >= 3) majorityOkCatCount++; } }
+            const resArea = document.getElementById('checkResult');
+            resArea.classList.remove('hidden');
+            const btns = document.getElementById('resultButtons');
+            btns.innerHTML = '';
+            if (majorityOkCatCount >= 2) {
+                resArea.className = "mb-10 p-10 rounded-[3rem] text-center bg-blue-50 border-blue-200 slide-up";
+                document.getElementById('resultMsg').innerHTML = `<span class='text-blue-600 block mb-2 font-jua text-4xl font-bold'>🎉 1차 심사 통과!</span> <span class='text-xl font-bold'>토의 결과 ${majorityOkCatCount}개 가치 영역에서 과반수 찬성을 얻었습니다.</span>`;
+                btns.innerHTML = `<button onclick="goToStep(3)" class="bg-blue-600 text-white font-jua text-3xl px-12 py-5 rounded-3xl hover:bg-blue-700 shadow-xl font-bold">다음: 미래 전달 가치 심사 ➔</button>`;
+            } else {
+                resArea.className = "mb-10 p-10 rounded-[3rem] text-center bg-orange-50 border-orange-200 shadow-sm slide-up";
+                document.getElementById('resultMsg').innerHTML = `<span class='text-orange-600 block mb-2 font-jua text-4xl font-bold'>🤔 심사 결과 기준 미달</span> <br> <span class='text-lg font-bold text-slate-500 text-center font-bold'>과반수 찬성 영역이 부족합니다. 아쉬운 경우 다시 생각해보세요.</span>`;
+                btns.innerHTML = `<button onclick="goToStep('heritage_input')" class="bg-indigo-500 text-white font-jua text-2xl px-8 py-4 rounded-2xl hover:bg-indigo-600 shadow-lg font-bold font-bold font-bold">다른 유산 후보 심사하기</button><button onclick="resetCurrentVotes()" class="bg-orange-500 text-white font-jua text-2xl px-8 py-4 rounded-2xl hover:bg-orange-600 shadow-lg font-bold font-bold font-bold">다시 심사하자(재토의)</button>`;
+            }
+            document.getElementById('checkScoreArea').classList.add('hidden');
+        }
+
+        function resetCurrentVotes() {
+            Object.keys(voteResults).forEach(k => { voteResults[k].ok.fill(false); voteResults[k].no.fill(false); });
+            document.querySelectorAll('.vote-dot').forEach(d => d.classList.remove('active-ok', 'active-no'));
+            document.getElementById('checkResult').classList.add('hidden');
+            document.getElementById('checkScoreArea').classList.remove('hidden');
+            updateVoteValidation();
+        }
+
+        function initFutureVotes() {
+            const okArea = document.getElementById('futureOkDots');
+            const noArea = document.getElementById('futureNoDots');
+            okArea.innerHTML = noArea.innerHTML = '';
+            for(let i=0; i<5; i++) {
+                okArea.innerHTML += `<div class="vote-dot" id="f_ok_${i}" onclick="toggleFutureDot('ok', ${i})">${i+1}</div>`;
+                noArea.innerHTML += `<div class="vote-dot" id="f_no_${i}" onclick="toggleFutureDot('no', ${i})">${i+1}</div>`;
+            }
+        }
+        function toggleFutureDot(type, idx) {
+            futureVotes[type][idx] = !futureVotes[type][idx];
+            document.getElementById(`f_${type}_${idx}`).classList.toggle(`active-${type}`);
+        }
+
+        function renderFinal() {
+            document.getElementById('resTeam').innerText = document.getElementById('teamName').value;
+            document.getElementById('resUsers').innerText = document.getElementById('userNames').value;
+            document.getElementById('resDate').innerText = new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'});
+            document.getElementById('resName').innerText = document.getElementById('heritageName').value;
+            document.getElementById('resImg').src = document.getElementById('heritage-img-preview').src;
+            document.getElementById('resReason').innerText = document.getElementById('finalReason').value;
+            const passAspects = [];
+            const labelsMap = ['역사적(옛사람 삶)', '과학적(슬기로움)', '예술적(아름다움)', '생태·환경적(자연 어울림)'];
+            for(let i=1; i<=4; i++) { if(!skippedCategories[i] && voteResults[`q_row_${i}`].ok.filter(v=>v).length >= 3) passAspects.push(labelsMap[i-1]); }
+            const okCount = futureVotes.ok.filter(v=>v).length;
+            const resChoice = document.getElementById('resChoiceDisplay');
+            if (okCount >= 4 && passAspects.length >= 2) {
+                resChoice.innerHTML = `이 유산은 <span class="text-indigo-600 font-bold font-bold">${passAspects.join(", ")}</span> 측면에서 가치가 높아 미래 사람들에게 가치 있는 국가유산이 될 수 있습니다. 이 유산을 <span class="text-indigo-700 font-bold underline font-bold font-bold">좌동의 미래 국가유산 후보로 추천</span>합니다.`;
+                document.getElementById('resBadge').classList.replace('hidden', 'flex');
+            } else {
+                resChoice.innerHTML = "본 유산은 위원회의 심층 토의 결과, 미래 전달 가치 기준(찬성 4인 이상)을 충족하지 못하여 후보 선정에서 제외되었습니다.";
+                document.getElementById('resBadge').classList.replace('flex', 'hidden');
+            }
+            renderChart();
+        }
+
+        function renderChart() {
+            if(myChart) myChart.destroy();
+            const scores = [1,2,3,4].map(i => (!skippedCategories[i] && voteResults[`q_row_${i}`].ok.filter(v=>v).length >= 3) ? 1 : 0);
+            myChart = new Chart(document.getElementById('resChart'), {
+                type: 'radar',
+                data: { labels: ['역사적', '과학적', '예술적', '생태적'], datasets: [{ data: scores, backgroundColor: 'rgba(99, 102, 241, 0.4)', borderColor: '#4f46e5', borderWidth: 4, pointRadius: 5 }] },
+                options: { scales: { r: { suggestedMin: 0, suggestedMax: 1, ticks: { display: false, stepSize: 1 }, pointLabels: { font: { family: 'Jua', size: 16, weight: 'bold' }, color: '#4338ca' } } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function toggleExamples() {
+            const box = document.getElementById('exampleBox');
+            if (box.classList.contains('hidden')) { box.classList.remove('hidden'); setTimeout(() => { box.style.maxHeight = "500px"; box.style.opacity = "1"; box.style.padding = "1.5rem"; }, 10); } 
+            else { box.style.maxHeight = "0"; box.style.opacity = "0"; box.style.padding = "0"; setTimeout(() => { box.classList.add('hidden'); }, 300); }
+        }
+
+        async function handleSavePDF() {
+            const team = document.getElementById('teamName').value || '결과';
+            const loading = document.getElementById('loading-mask');
+            loading.style.display = 'flex';
+            try {
+                const scrollPos = window.scrollY;
+                window.scrollTo(0, 0);
+                const element = document.getElementById('capture-area');
+                const opt = { 
+                    margin: [10, 10, 10, 10], filename: `좌동_미래국가유산_결정서_${team}.pdf`, image: { type: 'jpeg', quality: 1.0 }, 
+                    html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: 850, scrollY: 0, logging: false }, 
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+                };
+                await html2pdf().set(opt).from(element).save();
+                window.scrollTo(0, scrollPos);
+            } catch (err) { console.error("PDF 생성 오류:", err); showCustomAlert("PDF 저장 중 문제가 발생했습니다."); } 
+            finally { loading.style.display = 'none'; }
+        }
+    </script>
+</body>
+</html>
