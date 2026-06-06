@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>원인과 결과 이어말하기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background:
+        radial-gradient(circle at top left, #fef3c7 0, transparent 28%),
+        radial-gradient(circle at top right, #dbeafe 0, transparent 30%),
+        linear-gradient(135deg, #f8fafc, #eff6ff);
+      min-height: 100vh;
+    }
+    .title-font { font-family: 'Jua', sans-serif; }
+    .card { box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12); }
+    .soft-btn { transition: all .18s ease; }
+    .soft-btn:hover { transform: translateY(-2px); filter: brightness(1.03); }
+    .soft-btn:active { transform: translateY(0); }
+    .selected { outline: 4px solid #fbbf24; outline-offset: 3px; }
+    .ok-selected { background: #22c55e !important; border-color: #15803d !important; color: white !important; transform: scale(1.03); box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35); }
+    .no-selected { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; transform: scale(1.03); box-shadow: 0 8px 18px rgba(239, 68, 68, 0.30); }
+    .disabled-btn { opacity: .45; pointer-events: none; }
+
+    /* 원인·결과 뽑기 화면: 1차·2차 결과 카드 강조 */
+    .relation-mini-btn {
+      min-height: 64px;
+      font-size: 1.35rem;
+      font-weight: 900;
+      border-radius: 1.25rem;
+    }
+    .relation-result-card {
+      min-height: 142px;
+      font-size: clamp(2.1rem, 4vw, 3.2rem);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-width: 5px;
+      border-radius: 1.75rem;
+      text-align: center;
+      line-height: 1.1;
+    }
+    .relation-result-wait {
+      background: #ffffff;
+      border-color: #fde68a;
+      color: #94a3b8;
+    }
+    .relation-result-first {
+      background: #dbeafe;
+      border-color: #60a5fa;
+      color: #1d4ed8;
+      box-shadow: 0 10px 22px rgba(59, 130, 246, .18);
+    }
+    .relation-result-second {
+      background: #ffedd5;
+      border-color: #fb923c;
+      color: #9a3412;
+      box-shadow: 0 10px 22px rgba(249, 115, 22, .18);
+    }
+    .sentence-guide-card {
+      word-break: keep-all;
+      line-height: 1.45;
+    }
+    .sentence-frame {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      font-size: clamp(1.35rem, 3vw, 2.1rem);
+      font-weight: 900;
+      color: #047857;
+    }
+    .sentence-place-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 8rem;
+      padding: .55rem 1rem;
+      border-radius: 1.25rem;
+      background: #d1fae5;
+      border: 3px solid #34d399;
+      color: #065f46;
+      white-space: nowrap;
+    }
+    .sentence-example {
+      word-break: keep-all;
+      line-height: 1.5;
+    }
+
+    @media print { body { background: white; } .no-print { display: none !important; } .print-area { box-shadow: none !important; border: 1px solid #ddd; } }
+  </style>
+</head>
+<body class="p-4 md:p-8 text-slate-800">
+  <main class="max-w-6xl mx-auto">
+    <section class="text-center mb-6">
+      <div class="inline-block px-5 py-2 rounded-full bg-amber-100 text-amber-800 font-bold mb-3">모둠 말하기 활동</div>
+      <h1 class="title-font text-4xl md:text-5xl text-blue-700">원인과 결과 이어말하기</h1>
+      <p class="mt-3 text-slate-600">모둠원별 경험 장소를 정하고, 활동 순서에 맞게 <b>상황 문장</b>과 <b>원인·결과</b>를 이어 말해 봅시다.</p>
+    </section>
+
+    <section id="setupSection" class="card bg-white rounded-3xl p-5 md:p-7 mb-6 border-4 border-blue-100">
+      <div class="flex flex-col md:flex-row md:items-end gap-3 mb-5">
+        <div class="flex-1">
+          <label class="font-bold text-slate-700">모둠 번호</label>
+          <div class="flex items-center gap-2 mt-1">
+            <input id="groupName" type="number" min="1" onchange="applyPredefinedGroup()" class="w-full p-3 rounded-2xl border-2 border-slate-200 focus:border-blue-400 outline-none" placeholder="예: 3" />
+            <span class="px-4 py-3 rounded-2xl bg-blue-100 text-blue-700 font-black whitespace-nowrap">모둠</span>
+          </div>
+        </div>
+        <button onclick="addMember()" class="no-print soft-btn px-5 py-3 rounded-2xl bg-green-500 text-white font-black">+ 모둠원 추가</button>
+      </div>
+
+      <div class="bg-blue-50 rounded-2xl p-4 mb-4">
+        <p class="font-bold text-blue-800 mb-2">입력 방법</p>
+        <p class="text-sm text-blue-900">모둠 번호를 입력하면 이름이 자동으로 나옵니다. 이름 옆에서 경험 장소를 직접 쓰거나, 제시된 장소를 선택하세요.</p>
+      </div>
+
+      <div id="memberList" class="space-y-3"></div>
+
+      <div class="mt-6 flex flex-wrap gap-3 justify-center no-print">
+        <button onclick="startActivity()" class="soft-btn px-8 py-4 rounded-3xl bg-blue-600 text-white font-black text-xl">활동 시작</button>
+        <button onclick="resetAll(true)" class="soft-btn px-6 py-4 rounded-3xl bg-slate-200 text-slate-700 font-bold">처음부터</button>
+      </div>
+    </section>
+
+    <section id="activitySection" class="hidden">
+      <div class="card print-area bg-white rounded-3xl p-5 md:p-7 border-4 border-amber-100">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+          <div>
+            <h2 class="title-font text-3xl text-amber-700">이어말하기 판</h2>
+            <p id="groupTitle" class="text-slate-500 font-bold"></p>
+          </div>
+          <div class="no-print flex gap-2">
+            <button onclick="saveEvaluationPdf()" class="soft-btn px-4 py-3 rounded-2xl bg-rose-600 text-white font-bold">동료평가 PDF 저장</button>
+            <button onclick="print()" class="soft-btn px-4 py-3 rounded-2xl bg-slate-700 text-white font-bold">활동 결과 인쇄</button>
+            <button onclick="backToSetup()" class="soft-btn px-4 py-3 rounded-2xl bg-slate-200 text-slate-700 font-bold">입력 수정</button>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-gradient-to-br from-indigo-50 to-white p-5 border-2 border-indigo-100 mb-5">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div>
+              <h3 class="font-black text-xl text-indigo-700">1. 활동 순서 뽑기</h3>
+              <p class="text-sm text-indigo-800 font-bold">활동 시작 후 먼저 발표 순서를 정합니다.</p>
+            </div>
+            <button id="orderDrawBtn" onclick="drawSpeakingOrder()" class="no-print soft-btn px-5 py-3 rounded-2xl bg-indigo-600 text-white font-black">활동 순서 뽑기</button>
+          </div>
+          <div id="orderList" class="flex gap-3 overflow-x-auto pb-2"></div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-5">
+          <div class="rounded-3xl bg-gradient-to-br from-blue-50 to-white p-5 border-2 border-blue-100">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="font-black text-xl text-blue-700">2. 경험 장소 확인하기</h3>
+              <button id="experienceBtn" onclick="showCurrentExperience()" class="no-print soft-btn px-5 py-3 rounded-2xl bg-blue-500 text-white font-black disabled-btn">경험 장소 확인하기</button>
+            </div>
+            <div id="experienceCard" class="min-h-44 rounded-3xl bg-white border-4 border-dashed border-blue-200 flex flex-col items-center justify-center p-5 text-center">
+              <p class="text-slate-400 font-bold">활동 순서를 먼저 뽑아 주세요.</p>
+            </div>
+          </div>
+
+          <div id="sentenceSection" class="rounded-3xl bg-gradient-to-br from-emerald-50 to-white p-5 border-2 border-emerald-100 hidden">
+            <h3 class="font-black text-xl text-emerald-700 mb-3">3. 상황을 문장으로 말하기</h3>
+            <div id="sentenceGuide" class="rounded-3xl bg-white border-4 border-emerald-100 p-5 text-center"></div>
+            <div class="mt-4 no-print flex justify-center">
+              <button onclick="confirmSentenceStep()" class="soft-btn px-5 py-3 rounded-2xl bg-emerald-600 text-white font-black">문장으로 말했어요</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="relationSection" class="mt-5 rounded-3xl bg-gradient-to-br from-amber-50 to-white p-5 border-2 border-amber-100 hidden">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h3 class="font-black text-xl text-amber-700">4. 원인 또는 결과 두 번 뽑기</h3>
+            <button id="relationDrawBtn" onclick="drawRelation()" class="no-print soft-btn px-5 py-3 rounded-2xl bg-amber-500 text-white font-black">1차 뽑기</button>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <div class="grid grid-cols-1 gap-4">
+                <div id="firstRelationCard" class="relation-result-card relation-result-wait">1차: 기다리는 중</div>
+                <div id="secondRelationCard" class="relation-result-card relation-result-wait">2차: 기다리는 중</div>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <button id="causeBtn" class="relation-mini-btn bg-white border-4 border-slate-200 text-slate-400">원인</button>
+                <button id="effectBtn" class="relation-mini-btn bg-white border-4 border-slate-200 text-slate-400">결과</button>
+              </div>
+              <p id="relationGuide" class="mt-4 text-center text-slate-500 font-bold"></p>
+            </div>
+            <div class="rounded-3xl bg-white border-2 border-amber-100 p-4">
+              <div class="font-black text-amber-700 mb-3">연결어 확인</div>
+              <div class="grid grid-cols-2 gap-3 mb-3">
+                <button id="firstBecauseBtn" onclick="chooseConnector(0, 'because')" class="soft-btn no-print p-3 rounded-2xl bg-white border-4 border-slate-200 font-black text-slate-600 disabled-btn">1차<br>왜냐하면</button>
+                <button id="firstSoBtn" onclick="chooseConnector(0, 'so')" class="soft-btn no-print p-3 rounded-2xl bg-white border-4 border-slate-200 font-black text-slate-600 disabled-btn">1차<br>그래서</button>
+                <button id="secondBecauseBtn" onclick="chooseConnector(1, 'because')" class="soft-btn no-print p-3 rounded-2xl bg-white border-4 border-slate-200 font-black text-slate-600 disabled-btn">2차<br>왜냐하면</button>
+                <button id="secondSoBtn" onclick="chooseConnector(1, 'so')" class="soft-btn no-print p-3 rounded-2xl bg-white border-4 border-slate-200 font-black text-slate-600 disabled-btn">2차<br>그래서</button>
+              </div>
+              <div id="connectorFeedback" class="rounded-2xl bg-slate-50 p-4 text-center font-bold text-slate-500 border-2 border-slate-100">원인은 “왜냐하면 ~ 때문입니다”, 결과는 “그래서”를 사용합니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="peerSection" class="mt-5 rounded-3xl bg-purple-50 p-5 border-2 border-purple-100 hidden">
+          <h3 class="font-black text-xl text-purple-700 mb-3">5. 동료평가</h3>
+          <div id="peerQuestion" class="text-purple-800 font-black mb-4 text-lg">친구가 알맞게 말하였나요?</div>
+          <div id="peerEvalList" class="space-y-3"></div>
+          <div id="peerResult" class="mt-4 rounded-2xl bg-white border-4 border-purple-100 p-4 text-center font-black text-purple-700 text-2xl">평가를 선택해 주세요.</div>
+          <div class="mt-4 flex flex-wrap gap-3 no-print">
+            <button onclick="savePeerEvaluation()" class="soft-btn px-6 py-3 rounded-2xl bg-purple-600 text-white font-black">동료평가 저장</button>
+            <button onclick="nextSpeaker()" class="soft-btn px-6 py-3 rounded-2xl bg-emerald-500 text-white font-black">다음 순서로 가기</button>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+            <h3 class="font-black text-xl text-slate-700">활동 기록</h3>
+            <button onclick="saveEvaluationPdf()" class="no-print soft-btn px-5 py-3 rounded-2xl bg-rose-600 text-white font-black">동료평가만 PDF 저장</button>
+          </div>
+          <div id="recordList" class="space-y-3"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const placeOptions = ['교실', '운동장', '급식실', '도서관', '복도', '놀이터', '공원', '집', '학원', '병원', '체육관', '버스 정류장', '마트', '문구점', '축구장', '음악실'];
+    const predefinedGroups = {
+      '1': ['황유빈', '배준이', '전민주', '김채은'],
+      '2': ['임시온', '김가빈', '김지민', '정서호'],
+      '3': ['조유나', '공다희', '김소민', '김지율'],
+      '4': ['전승찬', '류호성', '류재승', '손시온'],
+      '5': ['천준영', '이사랑', '윤영빈'],
+      '6': ['이나빈', '최설진', '문연우', '이하온'],
+      '7': ['김리안', '이마로', '최다윤', '김리오']
+    };
+
+    let members = [];
+    let speakingOrder = [];
+    let currentOrderIndex = 0;
+    let currentSpeaker = null;
+    let relationSequence = [];
+    let relationDrawCount = 0;
+    let checkedConnectors = [];
+    let records = [];
+    let peerVotes = {};
+
+    function memberTemplate(index, name = '', keyword = '') {
+      return `
+        <div class="member-card rounded-2xl bg-slate-50 border-2 border-slate-100 p-3" data-index="${index}">
+          <div class="grid grid-cols-12 gap-2 items-center">
+            <div class="col-span-12 md:col-span-1 font-black text-blue-700 text-center">${index + 1}</div>
+            <div class="col-span-12 md:col-span-3">
+              <input class="member-name w-full p-3 rounded-2xl border-2 border-slate-200 outline-none focus:border-blue-400 font-bold" value="${escapeHtml(name)}" placeholder="이름" />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+              <input class="member-keyword w-full p-3 rounded-2xl border-2 border-slate-200 outline-none focus:border-blue-400" value="${escapeHtml(keyword)}" placeholder="경험 장소 직접 입력" />
+            </div>
+            <div class="col-span-9 md:col-span-3">
+              <select class="place-select w-full p-3 rounded-2xl border-2 border-slate-200 outline-none focus:border-blue-400" onchange="selectPlace(${index}, this.value)">
+                <option value="">제시된 장소 선택</option>
+                ${placeOptions.map(p => `<option value="${escapeHtml(p)}" ${p === keyword ? 'selected' : ''}>${escapeHtml(p)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="col-span-3 md:col-span-1 text-right">
+              <button onclick="removeMember(${index})" class="no-print text-sm px-3 py-2 rounded-full bg-rose-100 text-rose-700 font-bold">삭제</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectPlace(index, value) {
+      const cards = [...document.querySelectorAll('.member-card')];
+      if (cards[index] && value) cards[index].querySelector('.member-keyword').value = value;
+    }
+
+    function renderMembers() {
+      document.getElementById('memberList').innerHTML = members.map((m, i) => memberTemplate(i, m.name, m.keyword)).join('');
+    }
+
+    function syncMembersFromInputs() {
+      const cards = [...document.querySelectorAll('.member-card')];
+      members = cards.map(card => ({
+        name: card.querySelector('.member-name').value.trim(),
+        keyword: card.querySelector('.member-keyword').value.trim()
+      }));
+    }
+
+    function addMember() {
+      syncMembersFromInputs();
+      if (members.length >= 6) { alert('모둠원은 최대 6명까지 입력할 수 있습니다.'); return; }
+      members.push({ name: '', keyword: '' });
+      renderMembers();
+    }
+
+    function removeMember(index) {
+      syncMembersFromInputs();
+      if (members.length <= 2) { alert('모둠원은 최소 2명 이상 입력해 주세요.'); return; }
+      members.splice(index, 1);
+      renderMembers();
+    }
+
+    function applyPredefinedGroup() {
+      const groupNo = document.getElementById('groupName').value.trim();
+      if (!predefinedGroups[groupNo]) return;
+      members = predefinedGroups[groupNo].map(name => ({ name, keyword: '' }));
+      renderMembers();
+    }
+
+    function getGroupLabel() {
+      const raw = document.getElementById('groupName').value.trim();
+      return raw ? `${raw}모둠` : '';
+    }
+
+    function startActivity() {
+      syncMembersFromInputs();
+      const valid = members.filter(m => m.name && m.keyword);
+      if (!document.getElementById('groupName').value.trim()) { alert('모둠 번호를 숫자로 입력해 주세요.'); return; }
+      if (valid.length < 2) { alert('이름과 경험 장소를 입력한 모둠원이 2명 이상 필요합니다.'); return; }
+      members = valid;
+      speakingOrder = [];
+      currentOrderIndex = 0;
+      currentSpeaker = null;
+      records = [];
+      document.getElementById('setupSection').classList.add('hidden');
+      document.getElementById('activitySection').classList.remove('hidden');
+      document.getElementById('groupTitle').textContent = `${getGroupLabel()} · 참여 ${members.length}명`;
+      document.getElementById('orderDrawBtn').classList.remove('disabled-btn');
+      document.getElementById('experienceBtn').classList.add('disabled-btn');
+      document.getElementById('orderList').innerHTML = '<div class="rounded-2xl bg-white border-2 border-indigo-100 p-4 font-bold text-slate-400 text-center w-full">활동 순서 뽑기를 눌러 주세요.</div>';
+      resetRoundDisplay();
+      renderRecords();
+    }
+
+    function backToSetup() {
+      document.getElementById('activitySection').classList.add('hidden');
+      document.getElementById('setupSection').classList.remove('hidden');
+      renderMembers();
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function drawSpeakingOrder() {
+      speakingOrder = shuffle(members);
+      currentOrderIndex = 0;
+      document.getElementById('orderDrawBtn').classList.add('disabled-btn');
+      document.getElementById('experienceBtn').classList.remove('disabled-btn');
+      renderOrderList();
+      resetRoundDisplay();
+      document.getElementById('experienceCard').innerHTML = '<p class="text-blue-500 font-black">1번 발표자의 경험 장소를 확인해 주세요.</p>';
+    }
+
+    function renderOrderList() {
+      const box = document.getElementById('orderList');
+      if (!speakingOrder.length) return;
+      box.innerHTML = speakingOrder.map((m, i) => {
+        const state = i < currentOrderIndex ? 'bg-slate-100 text-slate-400 border-slate-200' : i === currentOrderIndex ? 'bg-indigo-100 text-indigo-800 border-indigo-400 selected' : 'bg-white text-indigo-700 border-indigo-100';
+        const label = i < currentOrderIndex ? '완료' : i === currentOrderIndex ? '현재 순서' : '대기';
+        return `<div class="rounded-2xl border-4 ${state} p-3 text-center font-black min-w-[120px]"><div class="text-lg">${i + 1}번</div><div class="text-xl">${escapeHtml(m.name)}</div><div class="text-xs mt-1">${label}</div></div>`;
+      }).join('');
+    }
+
+    function showCurrentExperience() {
+      if (!speakingOrder.length) { alert('활동 순서를 먼저 뽑아 주세요.'); return; }
+      if (currentOrderIndex >= speakingOrder.length) { alert('모든 친구가 활동을 마쳤습니다.'); return; }
+      currentSpeaker = speakingOrder[currentOrderIndex];
+      document.getElementById('experienceCard').innerHTML = `
+        <div class="text-sm font-bold text-blue-500 mb-2">${currentOrderIndex + 1}번 발표자</div>
+        <div class="title-font text-3xl md:text-4xl text-blue-700 mb-2">${escapeHtml(currentSpeaker.name)}</div>
+        <div class="px-5 py-3 rounded-3xl bg-blue-100 text-blue-800 font-black text-2xl">${escapeHtml(currentSpeaker.keyword)}</div>
+      `;
+      document.getElementById('experienceBtn').classList.add('disabled-btn');
+      document.getElementById('sentenceSection').classList.remove('hidden');
+      document.getElementById('sentenceGuide').className = 'sentence-guide-card rounded-3xl bg-white border-4 border-emerald-100 p-5 text-center';
+      document.getElementById('sentenceGuide').innerHTML = `
+        <p class="text-slate-500 font-bold mb-3">아래 형식으로 상황을 한 문장으로 말해 봅시다.</p>
+        <div class="sentence-frame" aria-label="상황 문장 말하기 틀">
+          <span>나는</span>
+          <span class="sentence-place-chip">${escapeHtml(currentSpeaker.keyword)}</span>
+          <span>에서</span>
+          <span>있었던 일을 말합니다.</span>
+        </div>
+        <p class="sentence-example mt-4 text-sm text-slate-500">예: ${escapeHtml(currentSpeaker.keyword)}에서 친구와 함께 놀았습니다.</p>
+      `;
+      resetRelationOnly();
+      resetPeerVotes();
+    }
+
+    function confirmSentenceStep() {
+      document.getElementById('relationSection').classList.remove('hidden');
+      document.getElementById('relationDrawBtn').classList.remove('disabled-btn');
+      document.getElementById('relationSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function relationKorean(type) { return type === 'cause' ? '원인' : '결과'; }
+    function connectorText(type) { return type === 'cause' ? '왜냐하면 ~ 때문입니다' : '그래서'; }
+
+    function drawRelation() {
+      if (!currentSpeaker) return;
+      if (relationDrawCount >= 2) { alert('두 번 모두 뽑았습니다.'); return; }
+      let picked;
+      if (relationDrawCount === 0) {
+        picked = 'effect';
+        relationSequence = [picked];
+      } else {
+        picked = Math.random() < 0.5 ? 'effect' : 'cause';
+        relationSequence.push(picked);
+      }
+      relationDrawCount++;
+      updateRelationDisplay();
+      setConnectorEnabled();
+      document.getElementById('relationDrawBtn').textContent = relationDrawCount === 1 ? '2차 뽑기' : '뽑기 완료';
+      document.getElementById('relationDrawBtn').classList.toggle('disabled-btn', relationDrawCount >= 2);
+      document.getElementById('connectorFeedback').className = 'rounded-2xl bg-white p-4 text-center font-bold text-slate-500 border-2 border-slate-100';
+      document.getElementById('connectorFeedback').textContent = relationDrawCount === 1
+        ? '1차는 결과입니다. 2차 뽑기를 눌러 주세요.'
+        : `말하기 순서가 정해졌습니다. ${relationKorean(relationSequence[0])} - ${relationKorean(relationSequence[1])}`;
+      resetPeerVotes();
+    }
+
+    function setConnectorEnabled() {
+      ['firstBecauseBtn','firstSoBtn'].forEach(id => document.getElementById(id).classList.toggle('disabled-btn', relationSequence.length < 1));
+      ['secondBecauseBtn','secondSoBtn'].forEach(id => document.getElementById(id).classList.toggle('disabled-btn', relationSequence.length < 2));
+    }
+
+    function updateRelationDisplay() {
+      const causeBtn = document.getElementById('causeBtn');
+      const effectBtn = document.getElementById('effectBtn');
+      causeBtn.className = 'relation-mini-btn bg-white border-4 border-slate-200 text-slate-400';
+      effectBtn.className = 'relation-mini-btn bg-white border-4 border-slate-200 text-slate-400';
+      if (relationSequence.includes('cause')) causeBtn.className = 'relation-mini-btn bg-amber-200 border-4 border-amber-400 text-amber-900 selected';
+      if (relationSequence.includes('effect')) effectBtn.className = 'relation-mini-btn bg-amber-200 border-4 border-amber-400 text-amber-900 selected';
+      const first = document.getElementById('firstRelationCard');
+      const second = document.getElementById('secondRelationCard');
+      first.className = 'relation-result-card relation-result-wait';
+      second.className = 'relation-result-card relation-result-wait';
+      first.textContent = '1차: 기다리는 중'; second.textContent = '2차: 기다리는 중';
+      if (relationSequence[0]) { first.className = 'relation-result-card relation-result-first'; first.textContent = `1차: ${relationKorean(relationSequence[0])}`; }
+      if (relationSequence[1]) { second.className = 'relation-result-card relation-result-second'; second.textContent = `2차: ${relationKorean(relationSequence[1])}`; }
+      document.getElementById('relationGuide').textContent = relationDrawCount < 2 ? '' : `말하기 순서: 상황 문장 → 1차 ${relationKorean(relationSequence[0])} → 2차 ${relationKorean(relationSequence[1])}`;
+    }
+
+    function chooseConnector(index, selectedType) {
+      if (!relationSequence[index]) return;
+      const relation = relationSequence[index];
+      const correctType = relation === 'cause' ? 'because' : 'so';
+      const prefix = index === 0 ? 'first' : 'second';
+      const becauseBtn = document.getElementById(`${prefix}BecauseBtn`);
+      const soBtn = document.getElementById(`${prefix}SoBtn`);
+      [becauseBtn, soBtn].forEach(btn => { btn.classList.remove('selected', 'border-green-400', 'bg-green-100', 'border-rose-400', 'bg-rose-100'); });
+      const clickedBtn = selectedType === 'because' ? becauseBtn : soBtn;
+      clickedBtn.classList.add('selected');
+      if (selectedType === correctType) {
+        checkedConnectors[index] = true;
+        clickedBtn.classList.add('border-green-400', 'bg-green-100');
+        document.getElementById('connectorFeedback').className = 'rounded-2xl bg-green-100 p-4 text-center font-black text-green-800 border-2 border-green-200';
+        document.getElementById('connectorFeedback').textContent = `${index + 1}차 ${relationKorean(relation)}에는 “${connectorText(relation)}”가 알맞습니다.`;
+      } else {
+        checkedConnectors[index] = false;
+        clickedBtn.classList.add('border-rose-400', 'bg-rose-100');
+        document.getElementById('connectorFeedback').className = 'rounded-2xl bg-rose-100 p-4 text-center font-black text-rose-800 border-2 border-rose-200';
+        document.getElementById('connectorFeedback').textContent = `${index + 1}차 ${relationKorean(relation)}에는 “${connectorText(relation)}”를 사용해야 합니다.`;
+      }
+      if (checkedConnectors[0] && checkedConnectors[1]) {
+        document.getElementById('peerSection').classList.remove('hidden');
+        updatePeerQuestion();
+      }
+      resetPeerVotes();
+    }
+
+    function updatePeerQuestion() {
+      const q = document.getElementById('peerQuestion');
+      if (q && currentSpeaker) q.textContent = `${currentSpeaker.name} 친구가 알맞게 말하였나요?`;
+      updatePeerResult();
+    }
+
+    function resetPeerVotes() {
+      peerVotes = {};
+      const list = document.getElementById('peerEvalList');
+      if (!list) return;
+      const filteredMembers = currentSpeaker ? members.filter(m => m.name !== currentSpeaker.name) : members;
+      list.innerHTML = filteredMembers.map(m => {
+        const originalIndex = members.findIndex(member => member.name === m.name);
+        return `
+          <div class="rounded-2xl bg-white border-2 border-purple-100 p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div class="font-black text-purple-800 text-lg">${escapeHtml(m.name)}</div>
+            <div class="flex gap-2">
+              <button id="vote-ok-${originalIndex}" onclick="setVote(${originalIndex}, 'ok')" class="soft-btn no-print px-5 py-3 rounded-2xl bg-white border-4 border-green-100 font-black text-green-700">OK</button>
+              <button id="vote-no-${originalIndex}" onclick="setVote(${originalIndex}, 'no')" class="soft-btn no-print px-5 py-3 rounded-2xl bg-white border-4 border-rose-100 font-black text-rose-700">NO</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      updatePeerQuestion();
+    }
+
+    function setVote(index, value) {
+      if (!currentSpeaker || relationSequence.length < 2 || !checkedConnectors[0] || !checkedConnectors[1]) {
+        alert('경험 장소 확인, 상황 문장 말하기, 원인·결과 뽑기, 연결어 확인이 끝난 뒤 평가해 주세요.');
+        return;
+      }
+      peerVotes[index] = value;
+      const okBtn = document.getElementById(`vote-ok-${index}`);
+      const noBtn = document.getElementById(`vote-no-${index}`);
+      if (okBtn) okBtn.classList.toggle('ok-selected', value === 'ok');
+      if (noBtn) noBtn.classList.toggle('no-selected', value === 'no');
+      updatePeerResult();
+    }
+
+    function updatePeerResult() {
+      const resultBox = document.getElementById('peerResult');
+      if (!resultBox || !currentSpeaker) return;
+      const total = members.filter(m => m.name !== currentSpeaker.name).length;
+      const okCount = Object.values(peerVotes).filter(v => v === 'ok').length;
+      const votedCount = Object.keys(peerVotes).length;
+      let result = '평가를 선택해 주세요.';
+      let cls = 'mt-4 rounded-2xl bg-white border-4 border-purple-100 p-4 text-center font-black text-purple-700 text-2xl';
+      if (votedCount > 0) {
+        if (okCount === total) {
+          result = '잘함';
+          cls = 'mt-4 rounded-2xl bg-green-100 border-4 border-green-300 p-4 text-center font-black text-green-800 text-3xl';
+        } else if (okCount >= 2) {
+          result = '보통';
+          cls = 'mt-4 rounded-2xl bg-amber-100 border-4 border-amber-300 p-4 text-center font-black text-amber-800 text-3xl';
+        } else {
+          result = '다시한번';
+          cls = 'mt-4 rounded-2xl bg-rose-100 border-4 border-rose-300 p-4 text-center font-black text-rose-800 text-3xl';
+        }
+      }
+      resultBox.className = cls;
+      resultBox.textContent = `${result}  ·  OK ${okCount}/${total}`;
+    }
+
+    function savePeerEvaluation() {
+      if (!currentSpeaker || relationSequence.length < 2 || !checkedConnectors[0] || !checkedConnectors[1]) { alert('모든 단계를 마친 뒤 저장해 주세요.'); return; }
+      const okNames = Object.keys(peerVotes).filter(key => peerVotes[key] === 'ok').map(key => members[Number(key)].name);
+      const noNames = Object.keys(peerVotes).filter(key => peerVotes[key] === 'no').map(key => members[Number(key)].name);
+      const total = members.length - 1;
+      const okCount = okNames.length;
+      const level = okCount === total ? '잘함' : okCount >= 2 ? '보통' : '다시한번';
+      const existingIndex = records.findIndex(r => r.speaker === currentSpeaker.name && r.order === currentOrderIndex + 1);
+      const record = {
+        order: currentOrderIndex + 1,
+        speaker: currentSpeaker.name,
+        keyword: currentSpeaker.keyword,
+        firstRelation: relationKorean(relationSequence[0]),
+        firstConnector: connectorText(relationSequence[0]),
+        secondRelation: relationKorean(relationSequence[1]),
+        secondConnector: connectorText(relationSequence[1]),
+        okCount,
+        noCount: noNames.length,
+        level,
+        okNames,
+        noNames
+      };
+      if (existingIndex >= 0) records[existingIndex] = record; else records.push(record);
+      renderRecords();
+      alert('동료평가가 저장되었습니다.');
+    }
+
+    function renderRecords() {
+      const box = document.getElementById('recordList');
+      if (!records.length) { box.innerHTML = '<div class="rounded-2xl bg-slate-50 p-4 text-slate-400 font-bold text-center">아직 저장된 기록이 없습니다.</div>'; return; }
+      box.innerHTML = records.map((r) => `
+        <div class="rounded-2xl bg-white border-2 border-slate-100 p-4">
+          <div class="flex flex-wrap gap-2 items-center mb-2">
+            <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-black">${r.order}번</span>
+            <span class="font-black">발표: ${escapeHtml(r.speaker)}</span>
+            <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold">장소: ${escapeHtml(r.keyword)}</span>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-bold">상황 문장 말하기</span>
+            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-bold">1차 ${r.firstRelation}: ${r.firstConnector}</span>
+            <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 font-bold">2차 ${r.secondRelation}: ${r.secondConnector}</span>
+          </div>
+          <p class="text-lg font-bold text-slate-700">평가 결과: ${r.level || ''} · OK ${r.okCount}개 / ${members.length - 1}명</p>
+          <p class="text-sm text-slate-500 mt-1">OK: ${r.okNames.length ? r.okNames.map(escapeHtml).join(', ') : '없음'} / NO: ${r.noNames && r.noNames.length ? r.noNames.map(escapeHtml).join(', ') : '없음'}</p>
+        </div>`).join('');
+    }
+
+    function nextSpeaker() {
+      if (!speakingOrder.length) return;
+      currentOrderIndex++;
+      if (currentOrderIndex >= speakingOrder.length) {
+        renderOrderList();
+        resetRoundDisplay();
+        document.getElementById('experienceCard').innerHTML = '<p class="text-emerald-600 font-black text-xl">모든 친구가 활동을 마쳤습니다.</p>';
+        alert('모든 친구가 활동을 마쳤습니다.');
+        return;
+      }
+      currentSpeaker = null;
+      renderOrderList();
+      resetRoundDisplay();
+      document.getElementById('experienceBtn').classList.remove('disabled-btn');
+      document.getElementById('experienceCard').innerHTML = `<p class="text-blue-500 font-black">${currentOrderIndex + 1}번 발표자의 경험 장소를 확인해 주세요.</p>`;
+      window.scrollTo({ top: document.getElementById('activitySection').offsetTop - 10, behavior: 'smooth' });
+    }
+
+    function resetRelationOnly() {
+      relationSequence = [];
+      relationDrawCount = 0;
+      checkedConnectors = [];
+      document.getElementById('causeBtn').className = 'relation-mini-btn bg-white border-4 border-slate-200 text-slate-400';
+      document.getElementById('effectBtn').className = 'relation-mini-btn bg-white border-4 border-slate-200 text-slate-400';
+      document.getElementById('firstRelationCard').className = 'p-4 rounded-2xl bg-white border-2 border-amber-100 text-center font-black text-slate-400';
+      document.getElementById('secondRelationCard').className = 'p-4 rounded-2xl bg-white border-2 border-amber-100 text-center font-black text-slate-400';
+      document.getElementById('firstRelationCard').textContent = '1차: 기다리는 중';
+      document.getElementById('secondRelationCard').textContent = '2차: 기다리는 중';
+      document.getElementById('relationGuide').textContent = '';
+      document.getElementById('relationDrawBtn').textContent = '1차 뽑기';
+      document.getElementById('relationDrawBtn').classList.remove('disabled-btn');
+      ['firstBecauseBtn','firstSoBtn','secondBecauseBtn','secondSoBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.className = btn.className.replace(/\s?selected|\s?border-green-400|\s?bg-green-100|\s?border-rose-400|\s?bg-rose-100/g, '');
+        if (!btn.classList.contains('disabled-btn')) btn.classList.add('disabled-btn');
+      });
+      document.getElementById('connectorFeedback').className = 'rounded-2xl bg-white p-4 text-center font-bold text-slate-500 border-2 border-slate-100';
+      document.getElementById('connectorFeedback').textContent = '원인은 “왜냐하면 ~ 때문입니다”, 결과는 “그래서”를 사용합니다.';
+    }
+
+    function resetRoundDisplay() {
+      currentSpeaker = null;
+      document.getElementById('experienceCard').innerHTML = '<p class="text-slate-400 font-bold">활동 순서를 먼저 뽑아 주세요.</p>';
+      document.getElementById('sentenceSection').classList.add('hidden');
+      document.getElementById('relationSection').classList.add('hidden');
+      document.getElementById('peerSection').classList.add('hidden');
+      resetRelationOnly();
+      resetPeerVotes();
+    }
+
+    function resetAll(confirmNeeded = false) {
+      if (confirmNeeded && !confirm('모든 내용을 처음부터 다시 입력할까요?')) return;
+      members = [ { name: '', keyword: '' }, { name: '', keyword: '' }, { name: '', keyword: '' }, { name: '', keyword: '' } ];
+      speakingOrder = [];
+      currentOrderIndex = 0;
+      currentSpeaker = null;
+      records = [];
+      peerVotes = {};
+      document.getElementById('groupName').value = '';
+      document.getElementById('activitySection').classList.add('hidden');
+      document.getElementById('setupSection').classList.remove('hidden');
+      renderMembers();
+    }
+
+
+    function buildEvaluationPdfHtml() {
+      const groupLabel = getGroupLabel() || '모둠';
+      const now = new Date();
+      const dateText = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+      const sortedRecords = [...records].sort((a, b) => a.order - b.order);
+      const rows = sortedRecords.map(r => {
+        const evaluators = members
+          .filter(m => m.name !== r.speaker)
+          .map(m => {
+            const isOk = r.okNames.includes(m.name);
+            const isNo = r.noNames && r.noNames.includes(m.name);
+            const result = isOk ? 'OK' : isNo ? 'NO' : '미평가';
+            const cls = isOk ? 'ok' : isNo ? 'no' : 'none';
+            return `<span class="vote ${cls}">${escapeHtml(m.name)}: ${result}</span>`;
+          }).join('');
+        return `
+          <section class="eval-card">
+            <div class="eval-head">
+              <div class="order">${r.order}번</div>
+              <div>
+                <div class="speaker">발표자: ${escapeHtml(r.speaker)}</div>
+                <div class="place">경험 장소: ${escapeHtml(r.keyword)}</div>
+              </div>
+              <div class="level ${r.level === '잘함' ? 'good' : r.level === '보통' ? 'normal' : 'again'}">${escapeHtml(r.level)}</div>
+            </div>
+            <div class="vote-wrap">${evaluators}</div>
+            <div class="summary">OK ${r.okCount}명 / 전체 ${members.length - 1}명</div>
+          </section>`;
+      }).join('');
+
+      return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(groupLabel)} 원인과 결과 이어말하기 동료평가</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', 'Malgun Gothic', Arial, sans-serif; color: #1e293b; margin: 0; }
+  .title { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 4px solid #bfdbfe; }
+  h1 { margin: 0 0 8px; font-size: 26px; color: #1d4ed8; }
+  .meta { display: flex; justify-content: center; gap: 16px; font-weight: 800; color: #475569; }
+  .notice { margin: 12px 0 16px; padding: 10px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 13px; font-weight: 700; }
+  .eval-card { page-break-inside: avoid; border: 2px solid #e2e8f0; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .eval-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .order { width: 54px; height: 54px; border-radius: 16px; background: #e0e7ff; color: #3730a3; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; }
+  .speaker { font-size: 19px; font-weight: 900; }
+  .place { margin-top: 4px; font-size: 14px; font-weight: 800; color: #2563eb; }
+  .level { margin-left: auto; min-width: 90px; text-align: center; padding: 10px 14px; border-radius: 14px; font-size: 21px; font-weight: 900; }
+  .good { background: #dcfce7; color: #166534; border: 2px solid #86efac; }
+  .normal { background: #fef3c7; color: #92400e; border: 2px solid #fcd34d; }
+  .again { background: #ffe4e6; color: #be123c; border: 2px solid #fda4af; }
+  .vote-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .vote { padding: 7px 11px; border-radius: 999px; font-size: 14px; font-weight: 900; border: 1px solid #cbd5e1; }
+  .ok { background: #dcfce7; color: #166534; border-color: #86efac; }
+  .no { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .none { background: #f1f5f9; color: #64748b; }
+  .summary { margin-top: 8px; font-weight: 900; color: #334155; }
+  .empty { text-align: center; padding: 40px; color: #64748b; font-weight: 800; border: 2px dashed #cbd5e1; border-radius: 16px; }
+  .print-note { text-align: center; margin-top: 12px; color: #64748b; font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="title">
+    <h1>원인과 결과 이어말하기 동료평가</h1>
+    <div class="meta"><span>${escapeHtml(groupLabel)}</span><span>${dateText}</span></div>
+  </div>
+  <div class="notice">이 PDF에는 동료평가 내용만 저장됩니다. 원인·결과 뽑기 과정과 상황 문장은 제외됩니다.</div>
+  ${sortedRecords.length ? rows : '<div class="empty">저장된 동료평가 기록이 없습니다.</div>'}
+  <div class="print-note">버튼을 누르면 동료평가 내용만 PDF 파일로 바로 저장됩니다.</div>
+</body>
+</html>`;
+    }
+
+    async function saveEvaluationPdf() {
+      if (!records.length) {
+        alert('저장된 동료평가 기록이 없습니다. 동료평가 저장을 먼저 눌러 주세요.');
+        return;
+      }
+      if (typeof html2pdf === 'undefined') {
+        alert('PDF 저장 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 실행해 주세요.');
+        return;
+      }
+
+      const button = document.activeElement;
+      const originalText = button && button.tagName === 'BUTTON' ? button.textContent : '';
+      if (button && button.tagName === 'BUTTON') {
+        button.textContent = 'PDF 저장 중...';
+        button.classList.add('disabled-btn');
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-9999px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '210mm';
+      wrapper.innerHTML = buildEvaluationPdfHtml();
+      document.body.appendChild(wrapper);
+
+      const groupRaw = document.getElementById('groupName').value.trim();
+      const fileGroup = groupRaw ? `${groupRaw}모둠` : '모둠';
+      const filename = `${fileGroup}_원인과결과_동료평가.pdf`;
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      try {
+        await html2pdf().set(opt).from(wrapper).save();
+      } catch (error) {
+        console.error(error);
+        alert('PDF 저장 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      } finally {
+        document.body.removeChild(wrapper);
+        if (button && button.tagName === 'BUTTON') {
+          button.textContent = originalText;
+          button.classList.remove('disabled-btn');
+        }
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+    }
+
+    resetAll(false);
+  </script>
+</body>
+</html>
