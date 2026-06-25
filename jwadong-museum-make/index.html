@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>좌동박물관 만들기</title>
+<style>
+  :root{
+    --ink:#243042; --line:#243042; --bg:#fff9ec; --card:#ffffff;
+    --mint:#dff4e8; --sky:#e4f2ff; --sun:#ffe89a; --peach:#ffe2d2; --lav:#efe4ff;
+    --green:#4b8b68; --brown:#8a623a; --shadow:rgba(36,48,66,.18);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Malgun Gothic','Arial',sans-serif;background:linear-gradient(180deg,#fff6df 0%,#f8fbff 100%);color:var(--ink);font-size:16px}
+  header{background:linear-gradient(135deg,#316b54,#6eb58a);color:white;padding:24px 16px 20px;text-align:center;border-bottom:8px solid #f0c96a;position:relative;overflow:hidden}
+  header:before{content:'🏛️';position:absolute;left:22px;top:8px;font-size:72px;opacity:.18}
+  header:after{content:'🎒';position:absolute;right:28px;bottom:4px;font-size:58px;opacity:.2}
+  header h1{margin:0;font-size:32px;letter-spacing:-1px;text-shadow:1px 2px 0 rgba(0,0,0,.12)}
+  header p{margin:8px auto 0;max-width:760px;font-size:16px;line-height:1.55}
+  .wrap{max-width:1180px;margin:0 auto;padding:16px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;background:rgba(255,249,236,.95);padding:10px 0;z-index:5;backdrop-filter:blur(5px)}
+  button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:10px 14px;font-weight:800;cursor:pointer;box-shadow:3px 3px 0 var(--line);transition:.12s transform,.12s box-shadow}
+  button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--line)}
+  button.active{background:var(--sun)}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}.primary{background:var(--mint)}.danger{background:#ffd7d7}.add{background:var(--lav)}
+  section{display:none}.show{display:block}
+  .panel{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:20px;margin:14px 0;box-shadow:8px 8px 0 var(--shadow);position:relative}
+  .panel:before{content:'';position:absolute;left:18px;right:18px;top:10px;border-top:2px dashed rgba(36,48,66,.12)}
+  h2{margin:4px 0 12px;font-size:26px;letter-spacing:-1px}.lead{background:#fff8d8;border:2px dashed #9a7831;border-radius:16px;padding:13px 14px;margin:10px 0 16px;line-height:1.55;font-weight:700}
+  .helper{font-size:14px;color:#58606f;line-height:1.45;margin:4px 0 8px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  label{font-weight:900;display:block;margin:10px 0 6px}.label-icon{display:inline-flex;align-items:center;gap:5px}
+  input,textarea,select{width:100%;border:2px solid var(--line);border-radius:14px;padding:11px 12px;font-size:16px;background:white;line-height:1.35}
+  textarea{min-height:82px;resize:vertical}
+  input::placeholder,textarea::placeholder{color:#8a8f99}
+  .museum-map{display:grid;grid-template-columns:1fr 1fr;gap:12px}.zone{min-height:132px;border:3px dashed #617083;border-radius:18px;padding:12px;background:#fbfdff}.zone h3{margin:0 0 8px;font-size:18px}
+  .badge{display:inline-block;padding:5px 10px;border:2px solid var(--line);border-radius:999px;background:#eee;font-weight:900;margin:2px;font-size:14px}.b-history{background:#ffe0cb}.b-science{background:#ddefff}.b-art{background:#f0ddff}.b-eco{background:#dff4e8}
+  .heritage{display:grid;grid-template-columns:82px 1fr;gap:10px;align-items:center;border:2px solid var(--line);border-radius:18px;padding:10px;background:#fff;box-shadow:3px 3px 0 rgba(36,48,66,.12)}
+  .icon{width:70px;height:70px;border:2px solid var(--line);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(135deg,#fff,#fff3c6)}
+  .heritage b{font-size:17px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .exhibit-card{border:3px solid var(--line);border-radius:22px;overflow:hidden;background:white;position:relative;break-inside:avoid;box-shadow:5px 5px 0 var(--shadow)}
+  .exhibit-card.has-photo{background-size:cover;background-position:center;background-repeat:no-repeat}.exhibit-card.has-photo:before{content:'';position:absolute;inset:0;background:rgba(255,255,255,.76);z-index:0}.exhibit-card>*{position:relative;z-index:1}
+  .card-head{padding:11px;background:rgba(223,244,232,.94);font-weight:900;text-align:center;border-bottom:3px solid var(--line);font-size:18px}
+  .card-body{padding:13px}.photo-preview{height:126px;border:2px dashed var(--line);border-radius:16px;background:#f7f7f7;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;overflow:hidden;background-size:cover;background-position:center;margin-bottom:8px;color:#566070;line-height:1.4}.photo-preview.has-photo{color:transparent;border-style:solid}
+  .file-note{font-size:12px;color:#596170;margin:4px 0 8px}.stars{font-size:24px;letter-spacing:3px}
+  .mission{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;border-bottom:2px dashed #c7ccd4;padding:12px 0}.check{width:25px;height:25px;border:2px solid var(--line);border-radius:6px;margin-top:2px;background:white}.mission-title{font-weight:900;margin-bottom:6px}
+  .award{background:#fff7d6;border:3px solid var(--line);border-radius:18px;padding:13px;text-align:center;font-weight:900;box-shadow:3px 3px 0 var(--shadow)}
+  .speech{border:3px solid var(--line);border-radius:20px;padding:15px;background:#eef7ff;position:relative;line-height:1.55;font-weight:700}.speech:after{content:'';position:absolute;left:30px;bottom:-17px;border-width:16px 12px 0 12px;border-style:solid;border-color:var(--line) transparent transparent transparent}
+  .curator-script{white-space:pre-line;background:#eef7ff;border:2px solid var(--line);border-radius:16px;padding:11px;margin-top:8px;font-size:15px;line-height:1.7}
+  .ticket{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:linear-gradient(135deg,#fff,#ffe8a9);border:3px solid var(--line);border-radius:20px;padding:14px;margin:10px 0}.ticket .stamp{font-size:44px}
+  .print-page{background:white;border:2px solid #ddd;margin:16px auto;padding:14mm;width:297mm;min-height:210mm}.print-title{text-align:center;border-bottom:3px solid var(--line);margin-bottom:12px;padding-bottom:8px}.small{font-size:13px;color:#596170}.row{display:flex;gap:10px}.row>*{flex:1}.mini-btn{padding:7px 9px;font-size:13px;border-radius:10px;box-shadow:1px 1px 0 var(--line);margin-top:6px}.notice{background:#eef7ff;border:2px solid var(--line);border-radius:16px;padding:11px;margin:10px 0;line-height:1.5}.cute-title{display:flex;align-items:center;gap:8px}.step{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:2px solid var(--line);border-radius:50%;background:var(--sun);font-weight:900}
+
+  .voice-wrap{display:flex;gap:6px;align-items:stretch;width:100%}
+  .voice-wrap input,.voice-wrap textarea{flex:1}
+  .mic-btn{min-width:48px;padding:8px 10px;border-radius:14px;background:#fff3c6;font-size:18px;box-shadow:2px 2px 0 var(--line)}
+  .mic-btn.listening{background:#ffd7d7;animation:pulse 1s infinite}
+  .voice-status{display:inline-block;margin-left:8px;font-size:13px;color:#b23b3b;font-weight:900}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+  @media(max-width:900px){.grid,.grid3,.cards,.museum-map{grid-template-columns:1fr}.print-page{width:100%;padding:14px}.wrap{padding:10px}header h1{font-size:24px}}
+  @media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{background:white}.hidden-print,header,.tabs,.toolbar,.screen-only{display:none!important}.wrap{max-width:none;padding:0}.panel{box-shadow:none;border:0;margin:0}.print-page{border:0;margin:0;width:297mm;min-height:210mm;page-break-after:always}.no-print{display:none}.show,section{display:block!important}.cards{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏛️ 좌동박물관 만들기</h1>
+  <p>나는 어린이 큐레이터! 박물관 만들기에 필요한 질문을 만들고, 좌동의 유산을 전시 카드로 꾸며요.</p>
+</header>
+<div class="wrap">
+  <div class="tabs hidden-print">
+    <button class="tab active" onclick="showTab('question',this)">① 질문 만들기</button>
+    <button class="tab" onclick="showTab('plan',this)">② 전시 준비</button>
+    <button class="tab" onclick="showTab('cards',this)">③ 유산 카드</button>
+    <button class="tab" onclick="showTab('mission',this)">④ 관람 미션</button>
+    <button class="tab" onclick="showTab('award',this)">⑤ 시상·방명록</button>
+    <button class="tab" onclick="showTab('print',this)">인쇄용</button>
+  </div>
+  <div class="toolbar hidden-print">
+    <button class="primary" onclick="window.print()">🖨️ 인쇄 / PDF 저장</button>
+    <button class="add" onclick="addCustomHeritage()">➕ 더 소개할 유산 추가</button>
+    <button onclick="fillExample()">✨ 예시 보기</button>
+    <button class="danger" onclick="resetAll()">↺ 모두 지우기</button>
+  </div>
+
+  <section id="question" class="show">
+    <div class="panel">
+      <h2 class="cute-title"><span class="step">1</span> 박물관 만들기 질문 만들기</h2>
+      <div class="lead">좋은 박물관을 만들려면 먼저 질문이 필요해요. 친구들이 보고 싶어 하는 전시, 필요한 준비물, 지켜야 할 약속을 질문으로 만들어 봅시다.</div>
+      <div class="notice"><b>질문 만드는 방법</b><br>① 무엇을 알고 싶은지 생각해요. ② 끝에 <b>무엇일까요?</b>, <b>어떻게 할까요?</b>, <b>왜 필요할까요?</b>를 붙여요. ③ 한 가지 내용만 묻는 질문으로 씁니다.</div>
+      <div class="grid3">
+        <div class="award">🏛️ 전시 질문<br><span class="small">무엇을 보여 줄까?</span></div>
+        <div class="award">📸 준비 질문<br><span class="small">무엇이 필요할까?</span></div>
+        <div class="award">🙋 관람 질문<br><span class="small">친구들이 무엇을 궁금해할까?</span></div>
+      </div>
+      <label>질문 1. 박물관을 만들 때 필요한 것은 무엇일까요?</label>
+      <textarea id="q1" placeholder="예: 유산을 잘 소개하려면 어떤 사진이 필요할까요?"></textarea>
+      <label>질문 2. 친구들이 전시를 잘 보려면 무엇이 필요할까요?</label>
+      <textarea id="q2" placeholder="예: 친구들이 쉽게 이해하려면 설명 카드에 무엇을 써야 할까요?"></textarea>
+      <label>질문 3. 우리 모둠의 전시를 특별하게 만들려면 어떻게 해야 할까요?</label>
+      <textarea id="q3" placeholder="예: 관람객이 재미있게 참여하려면 어떤 체험을 넣으면 좋을까요?"></textarea>
+      <label>질문 4. 큐레이터가 발표할 때 친구들에게 무엇을 알려 주어야 할까요?</label>
+      <textarea id="q4" placeholder="예: 이 유산을 왜 미래에 전하고 싶은지 어떻게 설명할까요?"></textarea>
+      <label>⭐ 우리 모둠의 핵심 질문</label>
+      <textarea id="mainQuestion" placeholder="예: 좌동의 유산을 미래 사람들에게 잘 전하려면 어떤 박물관을 만들어야 할까요?"></textarea>
+      <div class="toolbar screen-only"><button class="primary" onclick="showTab('plan',document.querySelectorAll('.tab')[1])">다음: 전시 준비하기 →</button></div>
+    </div>
+  </section>
+
+  <section id="plan">
+    <div class="panel">
+      <h2 class="cute-title"><span class="step">2</span> 우리 모둠 전시 준비</h2>
+      <div class="lead">모둠 친구들과 상의해서 전시관 이름을 정하고, 좌동의 유산을 어떤 순서로 보여 줄지 생각해 봅시다.</div>
+      <div class="grid">
+        <div><label>👥 모둠 이름</label><input id="team" placeholder="예: 1모둠"></div>
+        <div><label>🏛️ 전시관 이름</label><input id="hall" placeholder="예: 좌동 보물 전시관"></div>
+        <div><label>🚪 전시 구역</label><select id="zone"><option>역사관</option><option>자연관</option><option>전통문화관</option><option>미래유산관</option></select></div>
+        <div><label>🎤 발표할 큐레이터</label><input id="curator" placeholder="예: 우리 모둠 / 학생 이름"></div>
+      </div>
+      <label>📌 전시할 수 있는 좌동의 유산</label>
+      <p class="helper">카드를 만들 때 아래 유산을 선택할 수 있어요. 더 소개하고 싶은 유산은 위의 ➕ 버튼으로 추가해요.</p>
+      <div class="grid3" id="heritageList"></div>
+      <label>💬 우리 모둠이 전하고 싶은 한 문장</label>
+      <textarea id="reason" placeholder="예: 좌동의 유산은 우리 동네의 자연과 이야기를 담고 있어서 미래 사람들에게 전하고 싶습니다."></textarea>
+      <label>🗺️ 박물관 배치 생각하기</label>
+      <p class="helper">친구들이 보기 편하도록 입구, 전시관, 체험존, 방명록 자리를 정해 봅시다.</p>
+      <div class="museum-map">
+        <div class="zone"><h3>① 입구·안내소</h3><textarea id="map1" placeholder="예: 관람 순서 안내하기"></textarea></div>
+        <div class="zone"><h3>② 전시관</h3><textarea id="map2" placeholder="예: 유산 사진과 카드 붙이기"></textarea></div>
+        <div class="zone"><h3>③ 체험존</h3><textarea id="map3" placeholder="예: 스티커 투표, 퀴즈"></textarea></div>
+        <div class="zone"><h3>④ 포토존·방명록</h3><textarea id="map4" placeholder="예: 느낀 점 쓰기"></textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cards">
+    <div class="panel">
+      <h2 class="cute-title"><span class="step">3</span> 유산 전시 카드 만들기</h2>
+      <div class="lead">유산 사진을 올리면 카드 배경에 들어갑니다. 글을 쓰기 어려우면 입력칸 옆 🎤 버튼을 누르고 말해 보세요.</div><div class="notice screen-only">🎤 마이크 기능은 크롬·엣지 브라우저에서 가장 잘 작동합니다. 처음 사용할 때 마이크 사용을 허용해 주세요.</div>
+      <div class="toolbar screen-only"><button class="add" onclick="addCard()">➕ 전시 카드 더 만들기</button></div>
+      <div class="cards" id="cardArea"></div>
+    </div>
+  </section>
+
+  <section id="mission">
+    <div class="panel">
+      <h2 class="cute-title"><span class="step">4</span> 박물관 관람 미션</h2>
+      <div class="speech">친구들의 전시를 천천히 둘러보세요. 마음에 드는 유산을 찾고, 큐레이터에게 질문도 해 봅시다.</div><br><br>
+      <div class="mission"><div class="check"></div><div><div class="mission-title">가장 오래 남기고 싶은 유산</div><textarea id="m1" placeholder="유산 이름과 까닭을 써요."></textarea></div></div>
+      <div class="mission"><div class="check"></div><div><div class="mission-title">가장 아름답다고 생각한 유산</div><textarea id="m2" placeholder="어떤 점이 아름다운가요?"></textarea></div></div>
+      <div class="mission"><div class="check"></div><div><div class="mission-title">새롭게 알게 된 점</div><textarea id="m3" placeholder="오늘 처음 알게 된 내용을 써요."></textarea></div></div>
+      <div class="mission"><div class="check"></div><div><div class="mission-title">큐레이터에게 할 질문</div><textarea id="m4" placeholder="예: 이 유산을 왜 미래에 전하고 싶나요?"></textarea></div></div>
+      <div class="mission"><div class="check"></div><div><div class="mission-title">추천 스티커를 주고 싶은 유산</div><textarea id="m5" placeholder="추천하고 싶은 유산과 이유를 써요."></textarea></div></div>
+    </div>
+  </section>
+
+  <section id="award">
+    <div class="panel">
+      <h2 class="cute-title"><span class="step">5</span> 좌동박물관 시상식</h2>
+      <div class="ticket"><div><b>🎫 좌동박물관 관람권</b><br><span class="small">오늘 나는 좌동의 유산을 살펴본 관람객이자 어린이 큐레이터입니다.</span><br><label>관람객 이름</label><input id="visitor" placeholder="이름"></div><div class="stamp">🏛️</div></div>
+      <div class="grid3">
+        <div class="award">🏆 최고의 유산상<br><input id="a1" placeholder="유산 이름"></div><div class="award">🌿 자연 사랑상<br><input id="a2" placeholder="유산 이름"></div><div class="award">🎨 아름다움상<br><input id="a3" placeholder="유산 이름"></div>
+        <div class="award">📜 역사 기억상<br><input id="a4" placeholder="유산 이름"></div><div class="award">💡 미래유산상<br><input id="a5" placeholder="유산 이름"></div><div class="award">🙋 질문왕<br><input id="a6" placeholder="친구 이름"></div>
+      </div>
+      <label>✏️ 박물관 방명록</label><textarea id="guest" placeholder="예: 우리 동네에도 미래에 전하고 싶은 유산이 많다는 것을 알게 되었습니다."></textarea>
+    </div>
+  </section>
+
+  <section id="print">
+    <div class="print-page"><div class="print-title"><h2>좌동박물관 활동지 ① 질문 만들기</h2></div>
+      <div class="lead">박물관 만들기에 필요한 것을 질문으로 생각해 봅시다.</div>
+      <h3>질문 만드는 방법</h3><div class="zone" style="min-height:50px">무엇일까요? / 어떻게 할까요? / 왜 필요할까요?</div>
+      <h3>박물관 만들기 질문</h3>
+      <div class="mission"><div class="check"></div><div>전시할 때 필요한 것은 무엇일까요?</div></div>
+      <div class="mission"><div class="check"></div><div>친구들이 잘 보려면 무엇이 필요할까요?</div></div>
+      <div class="mission"><div class="check"></div><div>우리 모둠 전시를 특별하게 만들려면 어떻게 해야 할까요?</div></div>
+      <div class="mission"><div class="check"></div><div>큐레이터가 발표할 때 무엇을 알려 주어야 할까요?</div></div>
+      <h3>우리 모둠의 핵심 질문</h3><div class="zone" style="min-height:80px"></div>
+    </div>
+    <div class="print-page"><div class="print-title"><h2>좌동박물관 활동지 ② 전시 준비</h2></div>
+      <div class="row"><div><b>모둠</b><div class="zone"></div></div><div><b>전시관 이름</b><div class="zone"></div></div><div><b>큐레이터</b><div class="zone"></div></div></div>
+      <h3>전시할 좌동의 유산</h3><div class="grid3" id="printHeritageList"></div>
+      <h3>우리 모둠이 전하고 싶은 한 문장</h3><div class="zone" style="min-height:70px"></div>
+      <h3>박물관 배치도</h3><div class="museum-map"><div class="zone">입구·안내소</div><div class="zone">전시관</div><div class="zone">체험존</div><div class="zone">포토존·방명록</div></div>
+    </div>
+    <div class="print-page"><div class="print-title"><h2>좌동박물관 활동지 ③ 전시 카드·관람 미션</h2></div>
+      <div class="cards"><div class="exhibit-card"><div class="card-head">전시 카드 1</div><div class="card-body">유산 이름:<br><br>유형:<br><br>가치:<br><br>미래에 전할 이유:<br><br>별점: ☆☆☆☆☆</div></div><div class="exhibit-card"><div class="card-head">전시 카드 2</div><div class="card-body">유산 이름:<br><br>유형:<br><br>가치:<br><br>미래에 전할 이유:<br><br>별점: ☆☆☆☆☆</div></div><div class="exhibit-card"><div class="card-head">전시 카드 3</div><div class="card-body">유산 이름:<br><br>유형:<br><br>가치:<br><br>미래에 전할 이유:<br><br>별점: ☆☆☆☆☆</div></div></div>
+      <h3>관람 미션</h3><div class="mission"><div class="check"></div><div>가장 오래 남기고 싶은 유산과 이유</div></div><div class="mission"><div class="check"></div><div>가장 아름다운 유산과 이유</div></div><div class="mission"><div class="check"></div><div>큐레이터에게 하고 싶은 질문</div></div><div class="mission"><div class="check"></div><div>오늘 새롭게 알게 된 점</div></div>
+      <h3>방명록</h3><div class="zone" style="min-height:90px"></div>
+    </div>
+  </section>
+</div>
+<script>
+let heritages=[
+  {name:'장산 구립공원', icon:'⛰️', type:'자연유산 후보', note:'숲과 동식물이 살아가는 소중한 자연'},
+  {name:'청사포 몽돌해변', icon:'🪨', type:'자연유산 후보', note:'몽돌과 바다가 어울린 아름다운 해변'},
+  {name:'신곡산 기억쉼터', icon:'🎗️', type:'문화유산 후보', note:'마을의 기억과 역사를 떠올리는 장소'},
+  {name:'좌동 구석기 유적지', icon:'🏺', type:'문화유산 후보', note:'아주 오래전 사람들의 생활을 알려 주는 곳'},
+  {name:'장산 새해 해맞이 축제', icon:'🌅', type:'무형유산 후보', note:'새해를 함께 맞이하는 우리 지역의 행사'},
+  {name:'해운대 정월대보름 달집태우기', icon:'🔥', type:'무형유산 후보', note:'마을 사람들이 함께하는 전통문화 행사'}
+];
+let cardCount=0;
+function renderHeritageList(){
+  const list=document.getElementById('heritageList');
+  const printList=document.getElementById('printHeritageList');
+  list.innerHTML=''; printList.innerHTML='';
+  heritages.forEach((h,idx)=>{
+    list.innerHTML+=`<div class="heritage"><div class="icon">${h.icon}</div><div><b>${h.name}</b><br><span class="small">${h.note}</span><br><span class="badge">${h.type}</span>${idx>5?`<br><button class="mini-btn danger screen-only" onclick="removeHeritage(${idx})">삭제</button>`:''}</div></div>`;
+    printList.innerHTML+=`<div class="zone"><b>${h.name}</b><br><span class="small">${h.note}</span></div>`;
+  });
+  refreshCardSelects();
+}
+function addCustomHeritage(){
+  const name=prompt('더 소개하고 싶은 유산 이름을 써 주세요.\n예: 대천천 산책로');
+  if(!name || !name.trim()) return;
+  const type=prompt('어떤 유산인가요?\n자연유산 후보 / 문화유산 후보 / 무형유산 후보 / 미래유산 후보','미래유산 후보') || '미래유산 후보';
+  const note=prompt('친구들이 이해하기 쉽게 한 문장으로 소개해 주세요.\n예: 산책하며 자연을 느낄 수 있는 곳','학생이 직접 찾은 유산') || '학생이 직접 찾은 유산';
+  heritages.push({name:name.trim(), icon:'➕', type:type.trim(), note:note.trim()});
+  renderHeritageList();
+}
+function removeHeritage(idx){ if(idx<6) return; if(confirm('추가한 유산을 삭제할까요?')){ heritages.splice(idx,1); renderHeritageList(); }}
+function optionsHtml(selected=''){return heritages.map(h=>`<option ${h.name===selected?'selected':''}>${h.name}</option>`).join('')+`<option>직접 입력</option>`;}
+function addCard(){
+  cardCount++; const i=cardCount;
+  const cardArea=document.getElementById('cardArea');
+  cardArea.insertAdjacentHTML('beforeend',`<div class="exhibit-card" id="card${i}"><div class="card-head">🎫 전시 카드 ${i}</div><div class="card-body"><label>📸 유산 사진</label><input type="file" id="c${i}photo" accept="image/*" onchange="setCardPhoto(${i},this)"><div class="photo-preview" id="c${i}preview">사진을 고르면<br>카드 배경에 들어가요.</div><div class="file-note">※ 직접 찍은 사진이나 조사한 사진을 넣을 수 있어요.</div><label>📌 유산 이름</label><select id="c${i}n" onchange="toggleCustomName(${i});autoType(${i})">${optionsHtml()}</select><input id="c${i}custom" placeholder="직접 입력할 유산 이름" style="display:none;margin-top:7px"><label>🏷️ 유산 종류</label><select id="c${i}t"><option>자연유산 후보</option><option>문화유산 후보</option><option>무형유산 후보</option><option>미래유산 후보</option></select><label>🔎 어떤 가치가 있나요?</label><div><span class="badge b-history">역사</span><span class="badge b-science">슬기로움</span><span class="badge b-art">아름다움</span><span class="badge b-eco">자연</span></div><textarea id="c${i}v" placeholder="예: 옛날 사람들의 생활을 알 수 있습니다."></textarea><label>🌱 왜 미래에 전하고 싶나요?</label><textarea id="c${i}r" placeholder="예: 우리 동네의 소중한 이야기를 담고 있기 때문입니다."></textarea><label>⭐ 추천 별점</label><select id="c${i}s"><option>★★★★★ 아주 추천해요</option><option>★★★★☆ 추천해요</option><option>★★★☆☆ 더 알아보고 싶어요</option></select><button class="mini-btn" onclick="makeScript(${i})">🎤 발표 말 만들기</button><div class="curator-script" id="script${i}" style="display:none"></div></div></div>`);
+  autoType(i);
+  enhanceVoiceInputs();
+}
+function toggleCustomName(i){document.getElementById(`c${i}custom`).style.display=(document.getElementById(`c${i}n`).value==='직접 입력')?'block':'none';}
+function autoType(i){const sel=document.getElementById(`c${i}n`); const t=document.getElementById(`c${i}t`); const found=heritages.find(h=>h.name===sel.value); if(found){t.value=found.type;}}
+function refreshCardSelects(){
+  for(let i=1;i<=cardCount;i++){
+    const sel=document.getElementById(`c${i}n`); if(!sel) continue;
+    const old=sel.value; sel.innerHTML=optionsHtml(old); if([...sel.options].some(o=>o.value===old)) sel.value=old; autoType(i);
+  }
+}
+function setCardPhoto(i,input){
+  const file=input.files && input.files[0]; if(!file) return;
+  const reader=new FileReader(); reader.onload=function(e){
+    const data=e.target.result; const card=document.getElementById('card'+i); const preview=document.getElementById('c'+i+'preview');
+    card.style.backgroundImage=`url(${data})`; card.classList.add('has-photo'); preview.style.backgroundImage=`url(${data})`; preview.classList.add('has-photo');
+  }; reader.readAsDataURL(file);
+}
+function getCardName(i){ const sel=document.getElementById(`c${i}n`); const custom=document.getElementById(`c${i}custom`); return sel.value==='직접 입력' ? (custom.value||'직접 찾은 유산') : sel.value; }
+function makeScript(i){
+  const name=getCardName(i); const type=document.getElementById(`c${i}t`).value; const value=document.getElementById(`c${i}v`).value||'소중한 가치가 있습니다.'; const reason=document.getElementById(`c${i}r`).value||'미래 사람들에게 전하고 싶습니다.';
+  const box=document.getElementById(`script${i}`); box.style.display='block';
+  box.textContent=`안녕하세요.\n저희가 소개할 유산은 ${name}입니다.\n이 유산은 ${type}입니다.\n${value}\n그래서 ${reason}\n이상입니다.`;
+}
+
+let activeRecognition=null;
+function supportsSpeech(){return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;}
+function enhanceVoiceInputs(){
+  document.querySelectorAll('input:not([type="file"]), textarea').forEach(el=>{
+    if(el.dataset.voiceReady==='1') return;
+    if(el.closest('.print-page')) return;
+    if(el.type==='hidden') return;
+    el.dataset.voiceReady='1';
+    const wrap=document.createElement('div');
+    wrap.className='voice-wrap';
+    el.parentNode.insertBefore(wrap,el);
+    wrap.appendChild(el);
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='mic-btn screen-only';
+    btn.title='말로 입력하기';
+    btn.textContent='🎤';
+    btn.onclick=()=>startVoiceInput(el,btn);
+    wrap.appendChild(btn);
+  });
+}
+function startVoiceInput(target,btn){
+  if(!supportsSpeech()){
+    alert('이 브라우저에서는 마이크 입력을 사용할 수 없습니다. 크롬 또는 엣지에서 열어 주세요.');
+    return;
+  }
+  if(activeRecognition){activeRecognition.stop();activeRecognition=null;}
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const recognition=new SpeechRecognition();
+  activeRecognition=recognition;
+  recognition.lang='ko-KR';
+  recognition.interimResults=true;
+  recognition.continuous=false;
+  const original=target.value;
+  let finalText='';
+  btn.classList.add('listening');
+  btn.textContent='🔴';
+  let status=document.getElementById('voiceStatus');
+  if(!status){status=document.createElement('span');status.id='voiceStatus';status.className='voice-status screen-only';document.querySelector('.toolbar')?.appendChild(status);}
+  status.textContent='말씀하세요...';
+  recognition.onresult=function(event){
+    let interim='';
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      const transcript=event.results[i][0].transcript;
+      if(event.results[i].isFinal){finalText+=transcript;} else {interim+=transcript;}
+    }
+    const spoken=(finalText||interim).trim();
+    if(spoken){
+      if(target.tagName==='TEXTAREA') target.value=(original ? original+' ' : '')+spoken;
+      else target.value=spoken;
+      target.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+  };
+  recognition.onerror=function(){status.textContent='마이크 입력을 다시 시도해 주세요.';};
+  recognition.onend=function(){btn.classList.remove('listening');btn.textContent='🎤';status.textContent='';activeRecognition=null;};
+  recognition.start();
+}
+
+function showTab(id,btn){document.querySelectorAll('section').forEach(s=>s.classList.remove('show'));document.getElementById(id).classList.add('show');document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function fillExample(){
+  q1.value='유산을 잘 보여 주려면 어떤 사진이 필요할까요?';q2.value='친구들이 쉽게 이해하려면 설명 카드에 무엇을 써야 할까요?';q3.value='관람객이 재미있게 참여하려면 어떤 체험을 넣으면 좋을까요?';q4.value='큐레이터가 발표할 때 어떤 가치를 알려 주어야 할까요?';mainQuestion.value='좌동의 유산을 미래 사람들에게 잘 전하려면 어떤 박물관을 만들어야 할까요?';team.value='1모둠';hall.value='좌동 보물 전시관';curator.value='우리 모둠';zone.value='자연관';reason.value='좌동의 유산은 우리 동네의 자연, 역사, 전통문화를 보여 주기 때문에 미래 사람들에게 전하고 싶습니다.';map1.value='관람 순서를 알려 주는 안내판을 둡니다.';map2.value='유산 사진과 전시 카드를 붙입니다.';map3.value='추천 스티커와 유산 퀴즈를 준비합니다.';map4.value='느낀 점을 쓰는 방명록을 둡니다.';
+  if(cardCount<3){while(cardCount<3)addCard();}
+  c1n.value='장산 구립공원';autoType(1);c1v.value='숲과 동식물이 살아가는 자연의 가치가 있습니다.';c1r.value='깨끗한 숲을 지키는 마음을 미래 사람들에게 알려 주고 싶습니다.';
+  c2n.value='청사포 몽돌해변';autoType(2);c2v.value='몽돌과 바다가 어울린 아름다움이 있습니다.';c2r.value='깨끗한 바다와 해변을 잘 지켜 전하고 싶습니다.';
+  c3n.value='신곡산 기억쉼터';autoType(3);c3v.value='마을의 기억과 역사를 떠올리게 하는 가치가 있습니다.';c3r.value='우리 지역의 이야기를 잊지 않도록 미래에 전하고 싶습니다.';
+}
+function resetAll(){if(!confirm('입력한 내용을 모두 지울까요?'))return;document.querySelectorAll('input,textarea').forEach(e=>e.value='');document.querySelectorAll('select').forEach(e=>e.selectedIndex=0);document.querySelectorAll('.exhibit-card').forEach(e=>{e.style.backgroundImage='';e.classList.remove('has-photo')});document.querySelectorAll('.photo-preview').forEach(e=>{e.style.backgroundImage='';e.classList.remove('has-photo');e.innerHTML='사진을 고르면<br>카드 배경에 들어가요.'});document.querySelectorAll('.curator-script').forEach(e=>{e.style.display='none';e.textContent=''});}
+renderHeritageList(); for(let i=0;i<3;i++) addCard(); enhanceVoiceInputs();
+</script>
+</body>
+</html>
