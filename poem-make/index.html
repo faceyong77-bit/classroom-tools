@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>나만의 시 꾸미기 교실</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --pink:#ff8fb3; --yellow:#ffe28a; --mint:#9be7d8; --sky:#a7d8ff; --purple:#c8b6ff;
+    --ink:#333; --paper:#fffdf8; --border:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:'Noto Sans KR','Malgun Gothic',sans-serif; color:var(--ink);
+    background:
+      radial-gradient(circle at 10% 10%, rgba(255,206,226,.65), transparent 20%),
+      radial-gradient(circle at 85% 15%, rgba(199,242,255,.8), transparent 24%),
+      radial-gradient(circle at 80% 85%, rgba(255,242,183,.8), transparent 24%),
+      #fffaf4;
+  }
+  header{
+    padding:18px 22px; text-align:center;
+    background:linear-gradient(90deg,#ffd7e6,#d6fff1,#fff1ae,#dce8ff);
+    border-bottom:5px solid #fff;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+  }
+  header h1{margin:0; font-size:31px; letter-spacing:-1px}
+  header p{margin:6px 0 0; font-size:15px}
+  .wrap{display:grid; grid-template-columns:390px 1fr; gap:22px; padding:22px; max-width:1320px; margin:0 auto}
+  .panel{
+    background:rgba(255,255,255,.94); border:4px solid #fff; border-radius:28px; padding:18px 18px 20px;
+    box-shadow:0 12px 26px rgba(60,60,60,.12); position:relative;
+  }
+  .panel:before{content:'🖍️'; position:absolute; right:18px; top:-18px; font-size:34px}
+  .sectionTitle{
+    font-weight:900; font-size:18px; margin:12px 0 8px; background:#fff3bd; display:inline-block;
+    padding:6px 12px; border-radius:999px;
+  }
+  label{display:block; font-weight:800; margin:9px 0 5px; font-size:14px}
+  input, select, textarea{
+    width:100%; border:2px solid #e7e7e7; border-radius:14px; padding:10px 12px; font-size:15px; background:#fff;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{border-color:#ff8fb3; box-shadow:0 0 0 4px rgba(255,143,179,.16)}
+  textarea{height:165px; resize:vertical; line-height:1.8; white-space:pre-wrap}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+  .btns{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
+  button{
+    border:0; border-radius:16px; padding:12px 10px; font-weight:900; font-size:15px; cursor:pointer;
+    box-shadow:0 5px 0 rgba(0,0,0,.12); transition:.08s; color:#333;
+  }
+  button:active{transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.14)}
+  .bPink{background:#ffbad1}.bMint{background:#bdf4e9}.bSky{background:#c8e8ff}.bYellow{background:#ffe58f}.bPurple{background:#d8caff}.bGray{background:#eee}
+  .stickers{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:8px}
+  .stickerBtn{font-size:24px; padding:8px; border-radius:16px; background:#fff; border:2px dashed #ffd0df; box-shadow:none}
+  .hint{font-size:12px; color:#666; line-height:1.5; margin-top:5px}
+  .stagePanel{display:flex; justify-content:center; align-items:flex-start; min-height:820px; background:rgba(255,255,255,.7); border-radius:28px; padding:16px; box-shadow:inset 0 0 0 4px #fff}
+  #poemCard{
+    width:794px; height:1123px; background:var(--paper); position:relative; overflow:hidden; border-radius:22px;
+    box-shadow:0 18px 32px rgba(0,0,0,.18); border:10px solid #fff; isolation:isolate;
+  }
+  #bgImage{position:absolute; inset:0; background-size:cover; background-position:center; opacity:.35; z-index:0}
+  #pattern{position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.18; background-image:radial-gradient(#ff8fb3 2px, transparent 2px); background-size:28px 28px}
+  .cloud{position:absolute; background:#fff; border-radius:999px; opacity:.82; z-index:2}
+  .cloud:before,.cloud:after{content:''; position:absolute; background:#fff; border-radius:50%}
+  .cloud.c1{width:130px;height:42px;left:44px;top:48px}.cloud.c1:before{width:55px;height:55px;left:22px;top:-25px}.cloud.c1:after{width:70px;height:70px;right:18px;top:-38px}
+  .cloud.c2{width:110px;height:36px;right:58px;top:82px}.cloud.c2:before{width:48px;height:48px;left:17px;top:-22px}.cloud.c2:after{width:60px;height:60px;right:13px;top:-32px}
+  .contentBox{
+    position:absolute; left:68px; right:68px; top:94px; bottom:66px; z-index:3;
+    background:rgba(255,255,255,.72); border:4px solid rgba(255,255,255,.96); border-radius:34px; padding:36px 42px 42px;
+    box-shadow:0 12px 28px rgba(70,70,70,.13); backdrop-filter: blur(1px);
+  }
+  .titleBox,.poemBox{
+    position:relative; background:rgba(255,255,255,.88); border:3px solid rgba(255,255,255,.98); border-radius:26px;
+    box-shadow:0 8px 18px rgba(70,70,70,.10); overflow:hidden;
+  }
+  .titleBox{min-height:168px; padding:30px 34px 26px; margin-bottom:18px}
+  .poemBox{min-height:650px; padding:38px 50px 78px;}
+  .stickerLayer{position:absolute; inset:0; pointer-events:none; z-index:1}
+  .zoneSticker{
+    position:absolute; font-size:40px; filter:drop-shadow(2px 3px 2px rgba(0,0,0,.15));
+  }
+  #previewTitle{
+    position:relative; z-index:2; min-height:75px; text-align:center; font-weight:900; font-size:44px; line-height:1.25;
+    margin:16px auto 10px; word-break:keep-all; color:#333;
+  }
+  .title-rainbow{background:linear-gradient(90deg,#ff6f91,#ffbc42,#40c9a2,#4dabf7,#9775fa); -webkit-background-clip:text; color:transparent!important}
+  .title-bubble{color:#ff6f91!important; text-shadow:3px 3px 0 #ffe58f, -1px -1px 0 #fff}
+  .title-classic{color:#333!important; border-bottom:5px double #333; display:block; padding-bottom:8px}
+  .title-soft{color:#5c5c5c!important; background:#fff1a8; border-radius:24px; padding:10px 18px; display:block}
+  #previewMeta{
+    position:relative; z-index:2; text-align:right; font-weight:800; font-size:20px; margin:0 4px 16px; color:#555;
+  }
+  #previewPoem{
+    position:relative; z-index:2; font-size:28px; line-height:1.95; white-space:pre-wrap; word-break:keep-all;
+    overflow-wrap:anywhere; min-height:510px;
+  }
+  #previewFooter{position:absolute; left:42px; right:42px; bottom:24px; text-align:center; font-size:15px; color:#777; font-weight:700; z-index:2}
+  .font-round{font-family:'Comic Sans MS','Jua','Noto Sans KR','Malgun Gothic',sans-serif}
+  .font-pen{font-family:'Nanum Pen Script','Comic Sans MS','Malgun Gothic',cursive}
+  .font-basic{font-family:'Noto Sans KR','Malgun Gothic',sans-serif}
+  .font-serif{font-family:'Batang','Nanum Myeongjo',serif}
+  .theme-pink .contentBox{background:rgba(255,245,249,.76)} .theme-mint .contentBox{background:rgba(239,255,251,.78)}
+  .theme-sky .contentBox{background:rgba(240,249,255,.78)} .theme-yellow .contentBox{background:rgba(255,251,231,.78)}
+  .theme-pink .titleBox,.theme-pink .poemBox{background:rgba(255,245,249,.92)}
+  .theme-mint .titleBox,.theme-mint .poemBox{background:rgba(242,255,252,.92)}
+  .theme-sky .titleBox,.theme-sky .poemBox{background:rgba(244,250,255,.94)}
+  .theme-yellow .titleBox,.theme-yellow .poemBox{background:rgba(255,252,236,.94)}
+  @media(max-width:980px){.wrap{grid-template-columns:1fr}.stagePanel{overflow:auto}#poemCard{transform:scale(.82); transform-origin:top center; margin-bottom:-190px}}
+  @media print{
+    body{background:white} header,.panel{display:none}.wrap{display:block; padding:0}.stagePanel{padding:0; box-shadow:none; background:white}
+    #poemCard{width:210mm; height:297mm; border-radius:0; border:0; box-shadow:none; page-break-after:avoid}
+    @page{size:A4 portrait; margin:0}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌈 나만의 시 꾸미기 교실 🌈</h1>
+  <p>배경사진을 넣고, 시를 쓰고, 제목과 시 상자 안에 스티커를 붙여 작품으로 저장해요!</p>
+</header>
+<div class="wrap">
+  <aside class="panel">
+    <div class="sectionTitle">1. 시 쓰기</div>
+    <label>이름</label>
+    <input id="studentName" list="nameList" placeholder="이름을 입력하세요" oninput="updatePreview()" />
+    <datalist id="nameList">
+      <option value="김리오"><option value="김소민"><option value="김지율"><option value="류재승"><option value="배준이"><option value="손시온"><option value="유호성"><option value="윤영빈"><option value="이마로"><option value="임시온"><option value="전승찬"><option value="천준영"><option value="정서호"><option value="공다희"><option value="김가빈"><option value="김리안"><option value="김지민"><option value="김채은"><option value="문연우"><option value="이나빈"><option value="이사랑"><option value="이하온"><option value="전민주"><option value="조유나"><option value="최다윤"><option value="최설진"><option value="황유빈">
+    </datalist>
+    <label>시 제목</label>
+    <input id="poemTitle" placeholder="예: 여름 바람" oninput="updatePreview()" />
+    <label>시 내용</label>
+    <textarea id="poemText" placeholder="여기에 시를 써 보세요.&#10;줄을 바꾸면 작품에도 그대로 보여요." oninput="updatePreview()"></textarea>
+    <div class="hint">긴 문장은 자동으로 줄바꿈됩니다.</div>
+
+    <div class="sectionTitle">2. 글자와 배경 꾸미기</div>
+    <label>배경사진 업로드</label>
+    <input type="file" id="bgUpload" accept="image/*" onchange="loadBackground(event)" />
+    <label>배경 투명도</label>
+    <input type="range" id="bgOpacity" min="0" max="100" value="35" oninput="updatePreview()" />
+
+    <div class="row">
+      <div><label>카드 색감</label><select id="theme" onchange="updatePreview()"><option value="theme-pink">분홍</option><option value="theme-mint">민트</option><option value="theme-sky">하늘</option><option value="theme-yellow">노랑</option></select></div>
+      <div><label>글씨체</label><select id="fontStyle" onchange="updatePreview()"><option value="font-round">동글동글</option><option value="font-basic">또박또박</option><option value="font-pen">손글씨 느낌</option><option value="font-serif">책 느낌</option></select></div>
+    </div>
+
+    <div class="row3">
+      <div><label>제목 글자</label><input type="range" id="titleSize" min="28" max="60" value="44" oninput="updatePreview()" /></div>
+      <div><label>이름 글자</label><input type="range" id="nameSize" min="14" max="28" value="20" oninput="updatePreview()" /></div>
+      <div><label>시 글자</label><input type="range" id="poemSize" min="18" max="34" value="28" oninput="updatePreview()" /></div>
+    </div>
+
+    <label>제목 꾸미기</label>
+    <select id="titleStyle" onchange="updatePreview()"><option value="title-rainbow">무지개 제목</option><option value="title-bubble">방울방울 제목</option><option value="title-soft">노란 이름표 제목</option><option value="title-classic">시집 제목</option></select>
+
+    <div class="sectionTitle">3. 스티커 붙이기</div>
+    <label>스티커 붙일 곳</label>
+    <select id="stickerArea">
+      <option value="title">제목 상자</option>
+      <option value="poem">시 상자</option>
+    </select>
+    <div class="stickers">
+      <button type="button" class="stickerBtn" onclick="addSticker('🌸')">🌸</button><button type="button" class="stickerBtn" onclick="addSticker('⭐')">⭐</button><button type="button" class="stickerBtn" onclick="addSticker('🦋')">🦋</button><button type="button" class="stickerBtn" onclick="addSticker('💗')">💗</button><button type="button" class="stickerBtn" onclick="addSticker('🍃')">🍃</button>
+      <button type="button" class="stickerBtn" onclick="addSticker('🌼')">🌼</button><button type="button" class="stickerBtn" onclick="addSticker('☁️')">☁️</button><button type="button" class="stickerBtn" onclick="addSticker('🌙')">🌙</button><button type="button" class="stickerBtn" onclick="addSticker('🐝')">🐝</button><button type="button" class="stickerBtn" onclick="addSticker('✨')">✨</button>
+    </div>
+    <div class="hint">스티커는 제목 상자와 시 상자 안쪽 가장자리에 놓여 글자를 가리지 않습니다.</div>
+
+    <div class="btns">
+      <button class="bPurple" onclick="clearStickers()">스티커 지우기</button>
+      <button class="bGray" onclick="resetAll()">처음부터</button>
+      <button class="bSky" onclick="savePNG()">그림파일 저장</button>
+      <button class="bYellow" onclick="window.print()">PDF/인쇄</button>
+    </div>
+  </aside>
+
+  <main class="stagePanel">
+    <section id="poemCard" class="theme-pink font-round">
+      <div id="bgImage"></div>
+      <div id="pattern"></div>
+      <div class="cloud c1"></div>
+      <div class="cloud c2"></div>
+      <div class="contentBox">
+        <div class="titleBox">
+          <div id="titleStickerLayer" class="stickerLayer"></div>
+          <div id="previewTitle" class="title-rainbow">나의 시 제목</div>
+          <div id="previewMeta">이름을 입력하세요</div>
+        </div>
+        <div class="poemBox">
+          <div id="poemStickerLayer" class="stickerLayer"></div>
+          <div id="previewPoem">여기에 내가 쓴 시가 보여요.</div>
+          <div id="previewFooter">나만의 시 꾸미기 작품</div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+const card = document.getElementById('poemCard');
+const titleStickerLayer = document.getElementById('titleStickerLayer');
+const poemStickerLayer = document.getElementById('poemStickerLayer');
+let titleStickerCount = 0;
+let poemStickerCount = 0;
+
+const titleSlots = [
+  {left:'14px', top:'12px'}, {right:'14px', top:'12px'},
+  {left:'36px', bottom:'12px'}, {right:'36px', bottom:'12px'},
+  {left:'120px', top:'14px'}, {right:'120px', top:'14px'},
+  {left:'180px', bottom:'10px'}, {right:'180px', bottom:'10px'}
+];
+
+const poemSlots = [
+  {left:'14px', top:'12px'}, {right:'14px', top:'12px'},
+  {left:'14px', top:'90px'}, {right:'14px', top:'90px'},
+  {left:'22px', bottom:'90px'}, {right:'22px', bottom:'90px'},
+  {left:'18px', bottom:'18px'}, {right:'18px', bottom:'18px'},
+  {left:'120px', top:'14px'}, {right:'120px', top:'14px'},
+  {left:'120px', bottom:'18px'}, {right:'120px', bottom:'18px'}
+];
+
+function updatePreview(){
+  const name = document.getElementById('studentName').value.trim();
+  const title = document.getElementById('poemTitle').value.trim();
+  const poem = document.getElementById('poemText').value.trim();
+
+  document.getElementById('previewTitle').textContent = title || '나의 시 제목';
+  document.getElementById('previewMeta').textContent = name || '이름을 입력하세요';
+  document.getElementById('previewPoem').textContent = poem || '여기에 내가 쓴 시가 보여요.';
+  document.getElementById('bgImage').style.opacity = (document.getElementById('bgOpacity').value / 100).toString();
+
+  card.classList.remove('theme-pink','theme-mint','theme-sky','theme-yellow','font-round','font-basic','font-pen','font-serif');
+  card.classList.add(document.getElementById('theme').value, document.getElementById('fontStyle').value);
+
+  const pt = document.getElementById('previewTitle');
+  pt.className = '';
+  pt.classList.add(document.getElementById('titleStyle').value);
+
+  pt.style.fontSize = document.getElementById('titleSize').value + 'px';
+  document.getElementById('previewMeta').style.fontSize = document.getElementById('nameSize').value + 'px';
+  document.getElementById('previewPoem').style.fontSize = document.getElementById('poemSize').value + 'px';
+}
+
+function loadBackground(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('bgImage').style.backgroundImage = `url(${ev.target.result})`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addSticker(emoji){
+  const area = document.getElementById('stickerArea').value;
+  const sticker = document.createElement('div');
+  sticker.className = 'zoneSticker';
+  sticker.textContent = emoji;
+
+  if(area === 'title'){
+    const pos = titleSlots[titleStickerCount % titleSlots.length];
+    applyPosition(sticker, pos);
+    titleStickerLayer.appendChild(sticker);
+    titleStickerCount++;
+  } else {
+    const pos = poemSlots[poemStickerCount % poemSlots.length];
+    applyPosition(sticker, pos);
+    poemStickerLayer.appendChild(sticker);
+    poemStickerCount++;
+  }
+}
+
+function applyPosition(el, pos){
+  ['left','right','top','bottom'].forEach(key => el.style[key] = '');
+  Object.keys(pos).forEach(key => el.style[key] = pos[key]);
+}
+
+function clearStickers(){
+  titleStickerLayer.innerHTML = '';
+  poemStickerLayer.innerHTML = '';
+  titleStickerCount = 0;
+  poemStickerCount = 0;
+}
+
+function resetAll(){
+  document.getElementById('studentName').value = '';
+  document.getElementById('poemTitle').value = '';
+  document.getElementById('poemText').value = '';
+  document.getElementById('bgUpload').value = '';
+  document.getElementById('bgImage').style.backgroundImage = '';
+  document.getElementById('bgOpacity').value = 35;
+  document.getElementById('theme').value = 'theme-pink';
+  document.getElementById('fontStyle').value = 'font-round';
+  document.getElementById('titleStyle').value = 'title-rainbow';
+  document.getElementById('titleSize').value = 44;
+  document.getElementById('nameSize').value = 20;
+  document.getElementById('poemSize').value = 28;
+  document.getElementById('stickerArea').value = 'title';
+  clearStickers();
+  updatePreview();
+}
+
+async function savePNG(){
+  updatePreview();
+  const name = document.getElementById('studentName').value.trim() || '학생';
+  const title = (document.getElementById('poemTitle').value.trim() || '시작품').replace(/[\\/:*?"<>|]/g, '_');
+  const canvas = await html2canvas(card, {scale:2, backgroundColor:null, useCORS:true});
+  const link = document.createElement('a');
+  link.download = `${name}_${title}_시꾸미기.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+updatePreview();
+</script>
+</body>
+</html>
